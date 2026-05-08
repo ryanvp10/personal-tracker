@@ -52,13 +52,22 @@ function TransactionForm() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div 
+      style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: '32px',
+        maxWidth: '800px',
+        width: '100%',
+        margin: '0 auto',
+      }}
+    >
       {/* ===== PAGE TITLE ===== */}
       <h2
         style={{
           fontSize: 'clamp(1rem, 3vw, 1.5rem)',
           fontWeight: 900,
-          letterSpacing: '0.15em',
+          letterSpacing: '0.1em',
           borderBottom: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
           paddingBottom: '16px',
           margin: 0,
@@ -79,7 +88,7 @@ function TransactionForm() {
       >
         {/* TYPE TOGGLE */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ fontSize: '0.7rem', letterSpacing: '0.15em', color: theme.colors.textMuted }}>
+          <label style={{ fontSize: '0.7rem', letterSpacing: '0.1em', color: theme.colors.textMuted }}>
             TYPE
           </label>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -134,7 +143,7 @@ function TransactionForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label
             htmlFor="amount"
-            style={{ fontSize: '0.7rem', letterSpacing: '0.15em', color: theme.colors.textMuted }}
+            style={{ fontSize: '0.7rem', letterSpacing: '0.1em', color: theme.colors.textMuted }}
           >
             AMOUNT
           </label>
@@ -154,7 +163,7 @@ function TransactionForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label
             htmlFor="category"
-            style={{ fontSize: '0.7rem', letterSpacing: '0.15em', color: theme.colors.textMuted }}
+            style={{ fontSize: '0.7rem', letterSpacing: '0.1em', color: theme.colors.textMuted }}
           >
             CATEGORY
           </label>
@@ -177,7 +186,7 @@ function TransactionForm() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label
             htmlFor="note"
-            style={{ fontSize: '0.7rem', letterSpacing: '0.15em', color: theme.colors.textMuted }}
+            style={{ fontSize: '0.7rem', letterSpacing: '0.1em', color: theme.colors.textMuted }}
           >
             NOTE
           </label>
@@ -202,7 +211,7 @@ function TransactionForm() {
             padding: '16px',
             fontSize: '0.85rem',
             fontWeight: 900,
-            letterSpacing: '0.15em',
+            letterSpacing: '0.1em',
             border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
             backgroundColor: saved ? theme.colors.hover : theme.colors.background,
             color: saved ? theme.colors.hoverText : theme.colors.text,
