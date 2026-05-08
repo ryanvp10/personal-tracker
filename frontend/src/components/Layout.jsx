@@ -112,7 +112,7 @@ function Layout({ children }) {
           textTransform: 'uppercase',
         }}
       >
-        RYAN SAPTA
+        FINANCIAL TRACKER // RYAN SAPTA 2026
       </footer>
     </div>
   );
