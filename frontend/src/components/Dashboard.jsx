@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign } from 'react-icons/fi';
 import {
   BarChart,
@@ -72,7 +72,22 @@ const renderLegendText = (value) => (
 // Brutalist pie label: category + amount
 const renderPieLabel = ({ name, value }) => `${name.toUpperCase()} ${formatIDR(value)}`;
 
+// Hook to detect mobile breakpoint
+function useIsMobile(breakpoint = 640) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 function Dashboard() {
+  const isMobile = useIsMobile(640);
+
   // ===== DERIVE DATA FROM mockTransactions =====
   const { summary, barData, pieData } = useMemo(() => {
     let totalIn = 0;
@@ -137,7 +152,7 @@ function Dashboard() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(250px, 1fr))',
           gap: '16px',
         }}
       >
@@ -170,17 +185,23 @@ function Dashboard() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(400px, 1fr))',
           gap: '16px',
+          width: '100%',
+          overflow: 'hidden',
         }}
       >
         {/* BAR CHART: Income vs Expense */}
-        <div style={{ ...cardStyle, minHeight: '350px' }}>
+        <div style={{ ...cardStyle, padding: isMobile ? '16px' : '24px', minHeight: isMobile ? '300px' : '350px', width: '100%', boxSizing: 'border-box' }}>
           <span style={{ ...labelStyle, textAlign: 'center', marginBottom: '16px' }}>
             INCOME VS EXPENSE
           </span>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData} barCategoryGap="30%">
+          <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
+            <BarChart
+              data={barData}
+              barCategoryGap="30%"
+              margin={isMobile ? { top: 5, right: 0, left: -15, bottom: 5 } : { top: 5, right: 10, left: 0, bottom: 5 }}
+            >
               <CartesianGrid stroke="#FFFFFF" strokeDasharray="0" />
               <XAxis
                 dataKey="name"
@@ -205,11 +226,11 @@ function Dashboard() {
         </div>
 
         {/* PIE CHART: Expense Breakdown */}
-        <div style={{ ...cardStyle, minHeight: '350px' }}>
+        <div style={{ ...cardStyle, padding: isMobile ? '16px' : '24px', minHeight: isMobile ? '300px' : '350px', width: '100%', boxSizing: 'border-box' }}>
           <span style={{ ...labelStyle, textAlign: 'center', marginBottom: '16px' }}>
             SPENDING BY CATEGORY
           </span>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -217,12 +238,12 @@ function Dashboard() {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={100}
+                outerRadius={isMobile ? 60 : 100}
                 innerRadius={0}
                 stroke="#000000"
                 strokeWidth={2}
-                label={renderPieLabel}
-                labelLine={{ stroke: '#FFFFFF', strokeWidth: 1 }}
+                label={isMobile ? false : renderPieLabel}
+                labelLine={isMobile ? false : { stroke: '#FFFFFF', strokeWidth: 1 }}
                 isAnimationActive={false}
               >
                 {pieData.map((entry, index) => (
