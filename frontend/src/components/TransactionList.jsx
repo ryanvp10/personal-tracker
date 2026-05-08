@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from 'react-icons/fi';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { mockTransactions } from '../mockData.js';
 import theme from '../theme';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -22,6 +24,52 @@ function TransactionList() {
   const formatDate = (dateStr) => {
     const [year, month, day] = dateStr.split('-');
     return `${day}-${month}-${year}`;
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(0, 0, 0);
+    doc.text('TRANSACTIONS', 14, 20);
+
+    // Build table rows
+    const rows = filtered.map((t) => [
+      t.note || 'NO NOTE',
+      t.category,
+      formatDate(t.date),
+      t.type === 'in' ? 'INCOME' : 'EXPENSES',
+      `${t.type === 'in' ? '+' : '-'}Rp. ${formatCurrency(t.amount)}`,
+    ]);
+
+    autoTable(doc, {
+      head: [['Note', 'Category', 'Date', 'Type', 'Amount']],
+      body: rows,
+      startY: 28,
+      styles: {
+        textColor: [0, 0, 0],
+        fillColor: [255, 255, 255],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.5,
+        fontSize: 9,
+        cellPadding: 4,
+        font: 'helvetica',
+      },
+      headStyles: {
+        fillColor: [0, 0, 0],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [255, 255, 255],
+      },
+      theme: 'plain',
+      margin: { left: 14, right: 14 },
+    });
+
+    doc.save('transactions.pdf');
   };
 
   const handleDelete = (id) => {
@@ -55,7 +103,7 @@ function TransactionList() {
 
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
           <button
-            onClick={() => console.log('Export PDF')}
+            onClick={handleExportPDF}
             style={{
               display: 'flex',
               alignItems: 'center',
