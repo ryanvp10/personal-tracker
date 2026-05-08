@@ -44,6 +44,15 @@ function TransactionList() {
       `${t.type === 'in' ? '+' : '-'}Rp. ${formatCurrency(t.amount)}`,
     ]);
 
+    // Calculate summary totals from filtered transactions
+    const totalIncome = filtered
+      .filter((t) => t.type === 'in')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = filtered
+      .filter((t) => t.type === 'out')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const remainingBudget = totalIncome - totalExpenses;
+
     autoTable(doc, {
       head: [['Note', 'Category', 'Date', 'Type', 'Amount']],
       body: rows,
@@ -68,6 +77,42 @@ function TransactionList() {
       theme: 'plain',
       margin: { left: 14, right: 14 },
     });
+
+    // --- Summary footer rows (brutalist: black bg, white text) ---
+    const tableLeft = 14;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const tableRight = pageWidth - 14;
+    const tableWidth = tableRight - tableLeft;
+    const colWidths = [tableWidth * 0.35, tableWidth * 0.25, tableWidth * 0.15, tableWidth * 0.12, tableWidth * 0.13];
+
+    // Read column widths from autoTable if available, otherwise estimate
+    const finalY = doc.lastAutoTable.finalY || (28 + rows.length * 10 + 10);
+    const rowHeight = 12;
+    const paddingLeft = 4;
+
+    const summaryLabelX = tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3];
+    const summaryValueX = tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4];
+    const summaryRows = [
+      { label: 'TOTAL INCOME', value: `+Rp. ${formatCurrency(totalIncome)}` },
+      { label: 'TOTAL EXPENSES', value: `-Rp. ${formatCurrency(totalExpenses)}` },
+      { label: 'REMAINING BUDGET', value: `${remainingBudget >= 0 ? '+' : '-'}Rp. ${formatCurrency(Math.abs(remainingBudget))}` },
+    ];
+
+    summaryRows.forEach((sr, i) => {
+      const y = finalY + (i + 1) * rowHeight;
+      // Black background spanning columns 4-5 combined
+      doc.setFillColor(0, 0, 0);
+      doc.rect(summaryLabelX - paddingLeft, y - rowHeight + 4, colWidths[3] + colWidths[4], rowHeight - 2, 'F');
+      // White bold text
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.text(sr.label, summaryLabelX, y);
+      doc.text(sr.value, summaryValueX + colWidths[4] - paddingLeft, y, { align: 'right' });
+    });
+
+    // Reset text color
+    doc.setTextColor(0, 0, 0);
 
     doc.save('transactions.pdf');
   };
