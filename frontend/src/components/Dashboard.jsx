@@ -347,7 +347,7 @@ function Dashboard() {
           </span>
           <ResponsiveContainer width="100%" height={isMobile ? 260 : 280}>
             <PieChart
-              margin={{ top: 10, right: 20, bottom: isMobile ? 10 : 50, left: 20 }}
+              margin={{ top: isMobile ? 10 : 35, right: 20, bottom: isMobile ? 10 : 50, left: 20 }}
               onClick={(e) => {
                 if (e && e.activePayload && e.activePayload[0]) {
                   handlePieClick(e.activePayload[0].payload);
@@ -360,7 +360,7 @@ function Dashboard() {
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
-                cy="50%"
+                cy={isMobile ? "50%" : "55%"}
                 outerRadius={isMobile ? 80 : 100}
                 innerRadius={isMobile ? 30 : 40}
                 stroke="#000000"
