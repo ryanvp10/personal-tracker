@@ -1,0 +1,132 @@
+/* ============================================
+   BRUTALIST GLOBAL STYLES
+   Black bg, white text, 6px borders, no shadows
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: #000000;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  min-height: 100vh;
+  line-height: 1.4;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: #FFFFFF;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+a:hover {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+button {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border: 6px solid #FFFFFF;
+  background-color: #000000;
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
+}
+
+button:hover {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+button:active {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+input,
+select,
+textarea {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background-color: #000000;
+  color: #FFFFFF;
+  border: 6px solid #FFFFFF;
+  padding: 12px;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #888888;
+}
+
+select option {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #FFFFFF;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+  border-left: 6px solid #FFFFFF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FFFFFF;
+}
+
+::selection {
+  background-color: #FFFFFF;
+  color: #000000;
+}
