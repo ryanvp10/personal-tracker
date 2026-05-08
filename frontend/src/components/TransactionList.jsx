@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
 import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from 'react-icons/fi';
+import { mockTransactions } from '../mockData.js';
 import theme from '../theme';
 
-// Placeholder data
-const initialTransactions = [
-  { id: 1, type: 'in', amount: 5000.0, category: 'SALARY', note: 'Monthly salary', date: '2026-05-01' },
-  { id: 2, type: 'out', amount: 1200.0, category: 'RENT', note: 'Apartment rent', date: '2026-05-02' },
-  { id: 3, type: 'out', amount: 85.5, category: 'FOOD', note: 'Grocery shopping', date: '2026-05-03' },
-  { id: 4, type: 'in', amount: 750.0, category: 'FREELANCE', note: 'Web design project', date: '2026-05-04' },
-  { id: 5, type: 'out', amount: 200.0, category: 'UTILITIES', note: 'Electric bill', date: '2026-05-05' },
-  { id: 6, type: 'out', amount: 45.0, category: 'TRANSPORT', note: 'Gas', date: '2026-05-06' },
-  { id: 7, type: 'out', amount: 150.0, category: 'ENTERTAINMENT', note: 'Concert tickets', date: '2026-05-07' },
-  { id: 8, type: 'in', amount: 300.0, category: 'INVESTMENT', note: 'Dividend payout', date: '2026-05-07' },
-];
-
 function TransactionList() {
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState(mockTransactions);
   const [filter, setFilter] = useState('all');
 
   const filtered =
@@ -24,9 +13,13 @@ function TransactionList() {
       : transactions.filter((t) => t.type === filter);
 
   const formatCurrency = (val) => {
-    // Indonesian Rupiah format: dots for thousands, no decimals
     const integerPart = Math.floor(val);
-    return integerPart.toLocaleString('de-DE'); // de-DE uses dots for thousands
+    return integerPart.toLocaleString('de-DE');
+  };
+
+  const formatDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('-');
+    return `${day}-${month}-${year}`;
   };
 
   const handleDelete = (id) => {
@@ -74,7 +67,6 @@ function TransactionList() {
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               cursor: 'pointer',
-              borderRadius: 0,
             }}
           >
             <FiDownload size={14} /> PDF
@@ -94,7 +86,6 @@ function TransactionList() {
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
               cursor: 'pointer',
-              borderRadius: 0,
             }}
           >
             <FiFile size={14} /> EXCEL
@@ -150,7 +141,7 @@ function TransactionList() {
               key={t.id}
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'auto 1fr auto auto',
+                gridTemplateColumns: 'auto 1fr auto auto auto',
                 gap: '16px',
                 alignItems: 'center',
                 padding: '16px',
@@ -176,9 +167,25 @@ function TransactionList() {
                   {t.category}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, letterSpacing: '0.1em' }}>
-                  {new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                  {formatDate(t.date)}
                 </span>
               </div>
+
+              {/* TYPE BADGE */}
+              <span
+                style={{
+                  padding: '4px 12px',
+                  border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+                  backgroundColor: t.type === 'in' ? '#000000' : '#000000',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '0.65rem',
+                  letterSpacing: '0.15em',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t.type === 'in' ? 'IN' : 'OUT'}
+              </span>
 
               {/* AMOUNT */}
               <span
@@ -187,6 +194,7 @@ function TransactionList() {
                   fontWeight: 900,
                   letterSpacing: '0.05em',
                   whiteSpace: 'nowrap',
+                  color: t.type === 'in' ? '#ffffff' : '#888888',
                 }}
               >
                 {t.type === 'in' ? '+' : '-'}Rp. {formatCurrency(t.amount)}
