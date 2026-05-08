@@ -75,7 +75,7 @@ const renderLegendText = (value) => (
 // Position is pushed slightly outside the outerRadius via (x, y) from the label render props.
 const renderPieLabel = ({ name, value, x, y, midAngle, outerRadius }) => {
   // Push the label a bit further out so it doesn't overlap the slice edge
-  const OFFSET = 14;
+  const OFFSET = 20;
   const RADIAN = Math.PI / 180;
   const nx = x + OFFSET * Math.cos(-midAngle * RADIAN);
   const ny = y + OFFSET * Math.sin(-midAngle * RADIAN);
@@ -380,7 +380,7 @@ function Dashboard() {
           </span>
           <ResponsiveContainer width="100%" height={isMobile ? 260 : 280}>
             <PieChart
-              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
+              margin={{ top: 40, right: 20, bottom: 20, left: 20 }}
               onClick={(e) => {
                 if (e && e.activePayload && e.activePayload[0]) {
                   handlePieClick(e.activePayload[0].payload);
