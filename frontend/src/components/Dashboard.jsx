@@ -1,6 +1,20 @@
-import React from 'react';
-import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiBarChart2 } from 'react-icons/fi';
+import React, { useMemo } from 'react';
+import { FiTrendingUp, FiTrendingDown, FiDollarSign } from 'react-icons/fi';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
 import theme from '../theme';
+import { mockTransactions } from '../mockData.js';
 
 const cardStyle = {
   border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
@@ -26,19 +40,82 @@ const valueStyle = {
   textTransform: 'uppercase',
 };
 
-function Dashboard() {
-  // Placeholder data
-  const summary = {
-    totalBalance: 125430.50,
-    monthlyIn: 8750.00,
-    monthlyOut: 4320.75,
-  };
+const formatIDR = (val) => {
+  const integerPart = Math.floor(val);
+  return 'Rp. ' + integerPart.toLocaleString('de-DE');
+};
 
-  const formatCurrency = (val) => {
-    // Indonesian Rupiah format: dots for thousands, no decimals
-    const integerPart = Math.floor(val);
-    return integerPart.toLocaleString('de-DE'); // de-DE uses dots for thousands
-  };
+// Brutalist tooltip: black bg, white border, no radius
+const tooltipStyle = {
+  contentStyle: {
+    backgroundColor: '#000000',
+    border: '6px solid #FFFFFF',
+    borderRadius: '0px',
+    color: '#FFFFFF',
+    fontSize: '0.7rem',
+    fontWeight: 900,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    padding: '8px 12px',
+  },
+  itemStyle: { color: '#FFFFFF' },
+  labelStyle: { color: '#888888', fontWeight: 900 },
+};
+
+// Brutalist legend label renderer
+const renderLegendText = (value) => (
+  <span style={{ color: '#FFFFFF', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+    {value}
+  </span>
+);
+
+// Brutalist pie label: category + amount
+const renderPieLabel = ({ name, value }) => `${name.toUpperCase()} ${formatIDR(value)}`;
+
+function Dashboard() {
+  // ===== DERIVE DATA FROM mockTransactions =====
+  const { summary, barData, pieData } = useMemo(() => {
+    let totalIn = 0;
+    let totalOut = 0;
+    const categoryMap = {};
+
+    mockTransactions.forEach((tx) => {
+      if (tx.type === 'in') {
+        totalIn += tx.amount;
+      } else if (tx.type === 'out') {
+        totalOut += tx.amount;
+        if (tx.category) {
+          categoryMap[tx.category] = (categoryMap[tx.category] || 0) + tx.amount;
+        }
+      }
+    });
+
+    const balance = totalIn - totalOut;
+
+    // Bar chart: income vs expense single-month summary
+    const bar = [
+      { name: 'INCOME', amount: totalIn },
+      { name: 'EXPENSE', amount: totalOut },
+    ];
+
+    // Pie chart: expense breakdown by category
+    const CAT_COLORS = {
+      food: '#FFFFFF',
+      transport: '#888888',
+      bills: '#444444',
+    };
+    const pie = Object.entries(categoryMap).map(([cat, total]) => ({
+      name: cat,
+      value: total,
+      color: CAT_COLORS[cat] || '#FFFFFF',
+    }));
+
+    return {
+      summary: { totalBalance: balance, monthlyIn: totalIn, monthlyOut: totalOut },
+      barData: bar,
+      pieData: pie,
+    };
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -64,78 +141,101 @@ function Dashboard() {
           gap: '16px',
         }}
       >
-        {/* TOTAL BALANCE */}
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FiDollarSign size={24} />
             <span style={labelStyle}>TOTAL BALANCE</span>
           </div>
-          <span style={valueStyle}>Rp. {formatCurrency(summary.totalBalance)}</span>
+          <span style={valueStyle}>{formatIDR(summary.totalBalance)}</span>
         </div>
 
-        {/* MONTHLY IN */}
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FiTrendingUp size={24} />
             <span style={labelStyle}>MONTHLY IN</span>
           </div>
-          <span style={valueStyle}>Rp. {formatCurrency(summary.monthlyIn)}</span>
+          <span style={valueStyle}>{formatIDR(summary.monthlyIn)}</span>
         </div>
 
-        {/* MONTHLY OUT */}
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FiTrendingDown size={24} />
             <span style={labelStyle}>MONTHLY OUT</span>
           </div>
-          <span style={valueStyle}>Rp. {formatCurrency(summary.monthlyOut)}</span>
+          <span style={valueStyle}>{formatIDR(summary.monthlyOut)}</span>
         </div>
       </div>
 
-      {/* ===== PLACEHOLDER CHARTS ===== */}
+      {/* ===== CHARTS ===== */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
           gap: '16px',
         }}
       >
-        {/* INCOME VS EXPENSES CHART PLACEHOLDER */}
-        <div
-          style={{
-            ...cardStyle,
-            minHeight: '300px',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '16px',
-          }}
-        >
-          <FiBarChart2 size={48} />
-          <span style={{ ...labelStyle, fontSize: '0.85rem' }}>
-            INCOME VS EXPENSES
+        {/* BAR CHART: Income vs Expense */}
+        <div style={{ ...cardStyle, minHeight: '350px' }}>
+          <span style={{ ...labelStyle, textAlign: 'center', marginBottom: '16px' }}>
+            INCOME VS EXPENSE
           </span>
-          <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, textAlign: 'center' }}>
-            [ CHART PLACEHOLDER ]
-          </span>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={barData} barCategoryGap="30%">
+              <CartesianGrid stroke="#FFFFFF" strokeDasharray="0" />
+              <XAxis
+                dataKey="name"
+                tick={{ fill: '#FFFFFF', fontSize: 10, fontWeight: 900 }}
+                axisLine={{ stroke: '#FFFFFF', strokeWidth: 2 }}
+                tickLine={{ stroke: '#FFFFFF' }}
+              />
+              <YAxis
+                tickFormatter={(v) => Math.floor(v / 1000) + 'K'}
+                tick={{ fill: '#888888', fontSize: 10, fontWeight: 900 }}
+                axisLine={{ stroke: '#FFFFFF', strokeWidth: 2 }}
+                tickLine={{ stroke: '#FFFFFF' }}
+              />
+              <Tooltip
+                formatter={(value) => [formatIDR(value), '']}
+                {...tooltipStyle}
+                cursor={{ fill: '#222222' }}
+              />
+              <Bar dataKey="amount" fill="#FFFFFF" radius={[0, 0, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* SPENDING BY CATEGORY PLACEHOLDER */}
-        <div
-          style={{
-            ...cardStyle,
-            minHeight: '300px',
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: '16px',
-          }}
-        >
-          <FiBarChart2 size={48} />
-          <span style={{ ...labelStyle, fontSize: '0.85rem' }}>
+        {/* PIE CHART: Expense Breakdown */}
+        <div style={{ ...cardStyle, minHeight: '350px' }}>
+          <span style={{ ...labelStyle, textAlign: 'center', marginBottom: '16px' }}>
             SPENDING BY CATEGORY
           </span>
-          <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, textAlign: 'center' }}>
-            [ CHART PLACEHOLDER ]
-          </span>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                innerRadius={0}
+                stroke="#000000"
+                strokeWidth={2}
+                label={renderPieLabel}
+                labelLine={{ stroke: '#FFFFFF', strokeWidth: 1 }}
+                isAnimationActive={false}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} radius={0} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, name) => [formatIDR(value), name.toUpperCase()]}
+                {...tooltipStyle}
+              />
+              <Legend formatter={renderLegendText} />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
