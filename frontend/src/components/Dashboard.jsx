@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign } from 'react-icons/fi';
 import {
   BarChart,
@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 import theme from '../theme';
 import { mockTransactions } from '../mockData.js';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const cardStyle = {
   border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
@@ -71,19 +72,6 @@ const renderLegendText = (value) => (
 
 // Brutalist pie label: category + amount
 const renderPieLabel = ({ name, value }) => `${name.toUpperCase()} ${formatIDR(value)}`;
-
-// Hook to detect mobile breakpoint
-function useIsMobile(breakpoint = 640) {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
-  );
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < breakpoint);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [breakpoint]);
-  return isMobile;
-}
 
 function Dashboard() {
   const isMobile = useIsMobile(640);

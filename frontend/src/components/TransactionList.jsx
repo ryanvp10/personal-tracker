@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from 'react-icons/fi';
 import { mockTransactions } from '../mockData.js';
 import theme from '../theme';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 function TransactionList() {
   const [transactions, setTransactions] = useState(mockTransactions);
   const [filter, setFilter] = useState('all');
+  const isMobile = useIsMobile(640);
 
   const filtered =
     filter === 'all'
@@ -27,7 +29,7 @@ function TransactionList() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '16px' : '32px' }}>
       {/* ===== PAGE TITLE + EXPORT BUTTONS ===== */}
       <div
         style={{
@@ -58,7 +60,7 @@ function TransactionList() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '10px 16px',
+              padding: isMobile ? '8px 10px' : '10px 16px',
               backgroundColor: '#000000',
               color: '#ffffff',
               border: '6px solid #ffffff',
@@ -77,7 +79,7 @@ function TransactionList() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '10px 16px',
+              padding: isMobile ? '8px 10px' : '10px 16px',
               backgroundColor: '#000000',
               color: '#ffffff',
               border: '6px solid #ffffff',
@@ -104,7 +106,7 @@ function TransactionList() {
             key={f}
             onClick={() => setFilter(f)}
             style={{
-              padding: '8px 16px',
+              padding: isMobile ? '6px 10px' : '8px 16px',
               border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
               backgroundColor: filter === f ? theme.colors.hover : theme.colors.background,
               color: filter === f ? theme.colors.hoverText : theme.colors.text,
@@ -139,17 +141,30 @@ function TransactionList() {
           {filtered.map((t) => (
             <div
               key={t.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr auto auto auto',
-                gap: '16px',
-                alignItems: 'center',
-                padding: '16px',
-                border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
-                backgroundColor: theme.colors.background,
-              }}
+              style={
+                isMobile
+                  ? {
+                      display: 'grid',
+                      gridTemplateColumns: 'auto 1fr auto',
+                      gridTemplateRows: 'auto auto',
+                      gap: '8px',
+                      alignItems: 'center',
+                      padding: '12px',
+                      border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+                      backgroundColor: theme.colors.background,
+                    }
+                  : {
+                      display: 'grid',
+                      gridTemplateColumns: 'auto 1fr auto auto auto',
+                      gap: '16px',
+                      alignItems: 'center',
+                      padding: '16px',
+                      border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+                      backgroundColor: theme.colors.background,
+                    }
+              }
             >
-              {/* ICON */}
+              {/* ICON — row 1 col 1 (both) */}
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 {t.type === 'in' ? (
                   <FiArrowUp size={20} />
@@ -158,7 +173,7 @@ function TransactionList() {
                 )}
               </div>
 
-              {/* DETAILS */}
+              {/* DETAILS — row 1 col 2 (both) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '0.05em' }}>
                   {t.note || 'NO NOTE'}
@@ -171,49 +186,79 @@ function TransactionList() {
                 </span>
               </div>
 
-              {/* TYPE BADGE */}
+              {/* TYPE BADGE — row 1 col 3 on mobile (top-right), row 1 col 3 on desktop */}
               <span
                 style={{
-                  padding: '4px 12px',
+                  padding: isMobile ? '4px 8px' : '4px 12px',
                   border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
-                  backgroundColor: t.type === 'in' ? '#000000' : '#000000',
+                  backgroundColor: '#000000',
                   color: '#ffffff',
                   fontWeight: 900,
                   fontSize: '0.65rem',
                   letterSpacing: '0.15em',
                   whiteSpace: 'nowrap',
+                  justifySelf: 'end',
                 }}
               >
                 {t.type === 'in' ? 'IN' : 'OUT'}
               </span>
 
-              {/* AMOUNT */}
+              {/* AMOUNT — row 2 col 2-3 on mobile, row 1 col 4 on desktop */}
               <span
-                style={{
-                  fontSize: '1rem',
-                  fontWeight: 900,
-                  letterSpacing: '0.05em',
-                  whiteSpace: 'nowrap',
-                  color: t.type === 'in' ? '#ffffff' : '#888888',
-                }}
+                style={
+                  isMobile
+                    ? {
+                        gridColumn: '2 / 4',
+                        gridRow: '2',
+                        fontSize: '0.95rem',
+                        fontWeight: 900,
+                        letterSpacing: '0.05em',
+                        whiteSpace: 'nowrap',
+                        color: t.type === 'in' ? '#ffffff' : '#888888',
+                        textAlign: 'right',
+                      }
+                    : {
+                        fontSize: '1rem',
+                        fontWeight: 900,
+                        letterSpacing: '0.05em',
+                        whiteSpace: 'nowrap',
+                        color: t.type === 'in' ? '#ffffff' : '#888888',
+                      }
+                }
               >
                 {t.type === 'in' ? '+' : '-'}Rp. {formatCurrency(t.amount)}
               </span>
 
-              {/* DELETE */}
+              {/* DELETE — row 2 col 1 on mobile, row 1 col 5 on desktop */}
               <button
                 onClick={() => handleDelete(t.id)}
                 aria-label="Delete transaction"
-                style={{
-                  padding: '8px',
-                  border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
-                  backgroundColor: theme.colors.background,
-                  color: theme.colors.text,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                style={
+                  isMobile
+                    ? {
+                        gridColumn: '1',
+                        gridRow: '2',
+                        padding: '6px',
+                        border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+                        backgroundColor: theme.colors.background,
+                        color: theme.colors.text,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 'fit-content',
+                      }
+                    : {
+                        padding: '8px',
+                        border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+                        backgroundColor: theme.colors.background,
+                        color: theme.colors.text,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }
+                }
               >
                 <FiTrash2 size={16} />
               </button>
