@@ -155,7 +155,7 @@ function TransactionList() {
                     }
                   : {
                       display: 'grid',
-                      gridTemplateColumns: 'auto 1fr 80px auto auto',
+                      gridTemplateColumns: 'auto auto 80px auto auto',
                       columnGap: '16px',
                       rowGap: '0px',
                       alignItems: 'center',
@@ -175,8 +175,8 @@ function TransactionList() {
               </div>
 
               {/* DETAILS — row 1 col 2 (both) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '0.05em' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflow: 'hidden' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '0.05em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {t.note || 'NO NOTE'}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, letterSpacing: '0.1em' }}>
@@ -234,6 +234,10 @@ function TransactionList() {
                         whiteSpace: 'nowrap',
                         color: t.type === 'in' ? '#ffffff' : '#888888',
                         alignSelf: 'center',
+                        justifySelf: 'end',
+                        maxWidth: '160px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                       }
                 }
               >
