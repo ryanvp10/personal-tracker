@@ -108,9 +108,11 @@ function Layout({ children }) {
           fontSize: '0.7rem',
           letterSpacing: '0.1em',
           color: theme.colors.textMuted,
+          fontWeight: 900,
+          textTransform: 'uppercase',
         }}
       >
-        FINANCIAL TRACKER // BRUTALIST EDITION // {new Date().getFullYear()}
+        RYAN SAPTA
       </footer>
     </div>
   );
