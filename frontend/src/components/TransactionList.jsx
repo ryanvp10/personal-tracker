@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from 'react-icons/fi';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -6,15 +6,47 @@ import { mockTransactions } from '../mockData.js';
 import theme from '../theme';
 import { useIsMobile } from '../hooks/useIsMobile';
 
+function getMonthOptions() {
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-indexed
+  const options = [{ value: 'all', label: 'All Months' }];
+
+  for (let offset = -12; offset <= 12; offset++) {
+    const totalMonths = currentYear * 12 + currentMonth + offset;
+    const year = Math.floor(totalMonths / 12);
+    const month = totalMonths % 12;
+    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const label = `${months[month]} ${year}`;
+    options.push({ value, label });
+  }
+  return options;
+}
+
 function TransactionList() {
   const [transactions, setTransactions] = useState(mockTransactions);
   const [filter, setFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const isMobile = useIsMobile(640);
 
-  const filtered =
-    filter === 'all'
-      ? transactions
-      : transactions.filter((t) => t.type === filter);
+  const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  const filtered = useMemo(() => {
+    let result = transactions;
+    // First: apply month filter
+    if (monthFilter !== 'all') {
+      result = result.filter((t) => t.date.startsWith(monthFilter));
+    }
+    // Then: apply type filter
+    if (filter !== 'all') {
+      result = result.filter((t) => t.type === filter);
+    }
+    return result;
+  }, [transactions, monthFilter, filter]);
 
   const formatCurrency = (val) => {
     const integerPart = Math.floor(val);
@@ -185,11 +217,49 @@ function TransactionList() {
       </div>
 
       {/* ===== FILTER BAR ===== */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <FiFilter size={16} />
-        <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', color: theme.colors.textMuted }}>
-          FILTER:
-        </span>
+      <div style={{ display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: '8px', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FiFilter size={16} />
+          <span style={{ fontSize: '0.7rem', letterSpacing: '0.15em', color: theme.colors.textMuted }}>
+            FILTER:
+          </span>
+        </div>
+
+        {/* MONTH SELECTOR */}
+        <select
+          value={monthFilter}
+          onChange={(e) => setMonthFilter(e.target.value)}
+          style={{
+            padding: isMobile ? '6px 10px' : '8px 12px',
+            border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+            backgroundColor: monthFilter !== 'all' ? theme.colors.hover : theme.colors.background,
+            color: monthFilter !== 'all' ? theme.colors.hoverText : theme.colors.text,
+            fontWeight: 900,
+            fontSize: '0.7rem',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            appearance: 'auto',
+            fontFamily: "'Courier New', Courier, monospace",
+          }}
+        >
+          {monthOptions.map((opt) => (
+            <option
+              key={opt.value}
+              value={opt.value}
+              style={{
+                backgroundColor: '#000000',
+                color: '#FFFFFF',
+                fontWeight: 900,
+                fontSize: '0.85rem',
+              }}
+            >
+              {opt.label}
+            </option>
+          ))}
+        </select>
+
+        {/* TYPE FILTER BUTTONS */}
         {['all', 'in', 'out'].map((f) => (
           <button
             key={f}
