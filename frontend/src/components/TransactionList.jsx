@@ -117,13 +117,13 @@ function TransactionList() {
               {/* DETAILS */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '0.05em' }}>
-                  {t.category}
-                </span>
-                <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, letterSpacing: '0.1em' }}>
                   {t.note || 'NO NOTE'}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, letterSpacing: '0.1em' }}>
-                  {t.date}
+                  {t.category}
+                </span>
+                <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, letterSpacing: '0.1em' }}>
+                  {new Date(t.date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
                 </span>
               </div>
 
