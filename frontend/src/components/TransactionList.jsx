@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2 } from 'react-icons/fi';
+import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from 'react-icons/fi';
 import theme from '../theme';
 
 // Placeholder data
@@ -35,19 +35,72 @@ function TransactionList() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {/* ===== PAGE TITLE ===== */}
-      <h2
+      {/* ===== PAGE TITLE + EXPORT BUTTONS ===== */}
+      <div
         style={{
-          fontSize: 'clamp(1rem, 3vw, 1.5rem)',
-          fontWeight: 900,
-          letterSpacing: '0.15em',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '16px',
           borderBottom: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
           paddingBottom: '16px',
-          margin: 0,
         }}
       >
-        TRANSACTIONS
-      </h2>
+        <h2
+          style={{
+            fontSize: 'clamp(1rem, 3vw, 1.5rem)',
+            fontWeight: 900,
+            letterSpacing: '0.15em',
+            margin: 0,
+          }}
+        >
+          TRANSACTIONS
+        </h2>
+
+        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={() => console.log('Export PDF')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 16px',
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              border: '6px solid #ffffff',
+              fontWeight: 900,
+              fontSize: 'clamp(0.6rem, 1.5vw, 0.7rem)',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              borderRadius: 0,
+            }}
+          >
+            <FiDownload size={14} /> PDF
+          </button>
+          <button
+            onClick={() => console.log('Export Excel')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '10px 16px',
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              border: '6px solid #ffffff',
+              fontWeight: 900,
+              fontSize: 'clamp(0.6rem, 1.5vw, 0.7rem)',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              borderRadius: 0,
+            }}
+          >
+            <FiFile size={14} /> EXCEL
+          </button>
+        </div>
+      </div>
 
       {/* ===== FILTER BAR ===== */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
