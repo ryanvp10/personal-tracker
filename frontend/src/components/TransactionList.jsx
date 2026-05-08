@@ -6,47 +6,96 @@ import { mockTransactions } from '../mockData.js';
 import theme from '../theme';
 import { useIsMobile } from '../hooks/useIsMobile';
 
-function getMonthOptions() {
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
-  ];
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-indexed
-  const options = [{ value: 'all', label: 'All Months' }];
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
-  for (let offset = -12; offset <= 12; offset++) {
-    const totalMonths = currentYear * 12 + currentMonth + offset;
-    const year = Math.floor(totalMonths / 12);
-    const month = totalMonths % 12;
-    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
-    const label = `${months[month]} ${year}`;
-    options.push({ value, label });
+function getMonthOptions() {
+  return [{ value: 'all', label: 'All Months' }].concat(
+    MONTHS.map((name, idx) => ({
+      value: String(idx + 1).padStart(2, '0'),
+      label: name,
+    }))
+  );
+}
+
+function getYearOptions() {
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
+  const endYear = currentYear + 5;
+  const options = [{ value: 'all', label: 'All Years' }];
+  for (let y = startYear; y <= endYear; y++) {
+    options.push({ value: String(y), label: String(y) });
   }
   return options;
 }
+
+const BrutalistSelect = ({ value, onChange, options, isMobile }) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    style={{
+      padding: isMobile ? '6px 10px' : '8px 12px',
+      border: '6px solid #000000',
+      borderRadius: 0,
+      backgroundColor: value !== 'all' ? '#000000' : '#ffffff',
+      color: value !== 'all' ? '#ffffff' : '#000000',
+      fontWeight: 900,
+      fontSize: '0.7rem',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      appearance: 'none',
+      fontFamily: "'Courier New', Courier, monospace",
+      flex: isMobile ? '1' : 'auto',
+      width: isMobile ? '100%' : 'auto',
+    }}
+  >
+    {options.map((opt) => (
+      <option
+        key={opt.value}
+        value={opt.value}
+        style={{
+          backgroundColor: '#000000',
+          color: '#FFFFFF',
+          fontWeight: 900,
+          fontSize: '0.85rem',
+        }}
+      >
+        {opt.label}
+      </option>
+    ))}
+  </select>
+);
 
 function TransactionList() {
   const [transactions, setTransactions] = useState(mockTransactions);
   const [filter, setFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
   const isMobile = useIsMobile(640);
 
   const monthOptions = useMemo(() => getMonthOptions(), []);
+  const yearOptions = useMemo(() => getYearOptions(), []);
 
   const filtered = useMemo(() => {
     let result = transactions;
-    // First: apply month filter
+    // Apply month filter
     if (monthFilter !== 'all') {
-      result = result.filter((t) => t.date.startsWith(monthFilter));
+      const monthPart = `-${monthFilter}-`;
+      result = result.filter((t) => t.date.includes(monthPart));
     }
-    // Then: apply type filter
+    // Apply year filter
+    if (yearFilter !== 'all') {
+      result = result.filter((t) => t.date.startsWith(yearFilter));
+    }
+    // Apply type filter
     if (filter !== 'all') {
       result = result.filter((t) => t.type === filter);
     }
     return result;
-  }, [transactions, monthFilter, filter]);
+  }, [transactions, monthFilter, yearFilter, filter]);
 
   const formatCurrency = (val) => {
     const integerPart = Math.floor(val);
@@ -226,38 +275,20 @@ function TransactionList() {
         </div>
 
         {/* MONTH SELECTOR */}
-        <select
+        <BrutalistSelect
           value={monthFilter}
-          onChange={(e) => setMonthFilter(e.target.value)}
-          style={{
-            padding: isMobile ? '6px 10px' : '8px 12px',
-            border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
-            backgroundColor: monthFilter !== 'all' ? theme.colors.hover : theme.colors.background,
-            color: monthFilter !== 'all' ? theme.colors.hoverText : theme.colors.text,
-            fontWeight: 900,
-            fontSize: '0.7rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            cursor: 'pointer',
-            appearance: 'auto',
-            fontFamily: "'Courier New', Courier, monospace",
-          }}
-        >
-          {monthOptions.map((opt) => (
-            <option
-              key={opt.value}
-              value={opt.value}
-              style={{
-                backgroundColor: '#000000',
-                color: '#FFFFFF',
-                fontWeight: 900,
-                fontSize: '0.85rem',
-              }}
-            >
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={setMonthFilter}
+          options={monthOptions}
+          isMobile={isMobile}
+        />
+
+        {/* YEAR SELECTOR */}
+        <BrutalistSelect
+          value={yearFilter}
+          onChange={setYearFilter}
+          options={yearOptions}
+          isMobile={isMobile}
+        />
 
         {/* TYPE FILTER BUTTONS */}
         {['all', 'in', 'out'].map((f) => (
