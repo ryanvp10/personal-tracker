@@ -155,7 +155,7 @@ function TransactionList() {
                     }
                   : {
                       display: 'grid',
-                      gridTemplateColumns: 'auto 1fr 80px auto auto',
+                      gridTemplateColumns: 'auto 1fr 80px 160px auto',
                       columnGap: '16px',
                       rowGap: '0px',
                       alignItems: 'center',
@@ -235,9 +235,6 @@ function TransactionList() {
                         color: t.type === 'in' ? '#ffffff' : '#888888',
                         alignSelf: 'center',
                         justifySelf: 'end',
-                        maxWidth: '140px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
                       }
                 }
               >
