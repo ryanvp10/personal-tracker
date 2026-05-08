@@ -188,14 +188,16 @@ function TransactionList() {
               </div>
 
               {/* TYPE BADGE — col 3 on desktop (fixed 80px col), col 3 on mobile */}
-              <span
+              <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  padding: isMobile ? '4px 8px' : '4px 0px',
+                  padding: '4px 0px',
                   height: isMobile ? 'auto' : '32px',
-                  width: isMobile ? 'auto' : '100%',
+                  width: isMobile ? 'auto' : '80px',
+                  minWidth: isMobile ? 'auto' : '80px',
+                  boxSizing: 'border-box',
                   border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
                   backgroundColor: '#000000',
                   color: '#ffffff',
@@ -203,12 +205,13 @@ function TransactionList() {
                   fontSize: '0.65rem',
                   letterSpacing: '0.15em',
                   whiteSpace: 'nowrap',
+                  textAlign: 'center',
                   justifySelf: 'center',
                   alignSelf: 'center',
                 }}
               >
                 {t.type === 'in' ? 'IN' : 'OUT'}
-              </span>
+              </div>
 
               {/* AMOUNT — row 2 col 2-3 on mobile, row 1 col 4 on desktop */}
               <span
