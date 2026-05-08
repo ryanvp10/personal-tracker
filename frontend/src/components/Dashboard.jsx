@@ -173,7 +173,7 @@ function Dashboard() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(400px, 1fr))',
+          gridTemplateColumns: '1fr',
           gap: '16px',
           width: '100%',
           overflow: 'hidden',
