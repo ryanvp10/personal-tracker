@@ -155,8 +155,9 @@ function TransactionList() {
                     }
                   : {
                       display: 'grid',
-                      gridTemplateColumns: 'auto 1fr auto auto auto',
-                      gap: '16px',
+                      gridTemplateColumns: 'auto 1fr 80px auto auto',
+                      columnGap: '16px',
+                      rowGap: '0px',
                       alignItems: 'center',
                       padding: '16px',
                       border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
@@ -186,10 +187,15 @@ function TransactionList() {
                 </span>
               </div>
 
-              {/* TYPE BADGE — row 1 col 3 on mobile (top-right), row 1 col 3 on desktop */}
+              {/* TYPE BADGE — col 3 on desktop (fixed 80px col), col 3 on mobile */}
               <span
                 style={{
-                  padding: isMobile ? '4px 8px' : '4px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: isMobile ? '4px 8px' : '4px 0px',
+                  height: isMobile ? 'auto' : '32px',
+                  width: isMobile ? 'auto' : '100%',
                   border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
                   backgroundColor: '#000000',
                   color: '#ffffff',
@@ -197,7 +203,8 @@ function TransactionList() {
                   fontSize: '0.65rem',
                   letterSpacing: '0.15em',
                   whiteSpace: 'nowrap',
-                  justifySelf: 'end',
+                  justifySelf: 'center',
+                  alignSelf: 'center',
                 }}
               >
                 {t.type === 'in' ? 'IN' : 'OUT'}
@@ -223,6 +230,7 @@ function TransactionList() {
                         letterSpacing: '0.05em',
                         whiteSpace: 'nowrap',
                         color: t.type === 'in' ? '#ffffff' : '#888888',
+                        alignSelf: 'center',
                       }
                 }
               >
@@ -257,6 +265,8 @@ function TransactionList() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        alignSelf: 'center',
+                        justifySelf: 'center',
                       }
                 }
               >
