@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { FiTrendingUp, FiTrendingDown, FiDollarSign } from 'react-icons/fi';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiX } from 'react-icons/fi';
 import {
   BarChart,
   Bar,
@@ -73,6 +73,103 @@ const renderLegendText = (value) => (
 // Brutalist pie label: category + amount
 const renderPieLabel = ({ name, value }) => `${name.toUpperCase()} ${formatIDR(value)}`;
 
+// ===== BRUTALIST POPUP =====
+function BrutalistPopup({ title, children, onClose, isMobile }) {
+  const popupRef = useRef(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  // Click outside to close
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  return (
+    <div
+      onClick={handleOverlayClick}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: isMobile ? '0' : '24px',
+      }}
+    >
+      <div
+        ref={popupRef}
+        style={{
+          backgroundColor: '#000000',
+          border: '6px solid #FFFFFF',
+          borderRadius: '0px',
+          padding: isMobile ? '24px' : '32px',
+          width: isMobile ? '100vw' : 'auto',
+          minWidth: isMobile ? 'auto' : '360px',
+          maxWidth: isMobile ? '100vw' : '520px',
+          height: isMobile ? '100vh' : 'auto',
+          maxHeight: isMobile ? '100vh' : 'none',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+          overflow: isMobile ? 'auto' : 'visible',
+        }}
+      >
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{
+            color: '#FFFFFF',
+            fontSize: '0.75rem',
+            fontWeight: 900,
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+          }}>
+            {title}
+          </span>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#FFFFFF',
+              cursor: 'pointer',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+            aria-label="Close"
+          >
+            <FiX size={24} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{
+          color: '#FFFFFF',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          letterSpacing: '0.05em',
+          lineHeight: '1.8',
+        }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const isMobile = useIsMobile(640);
 
@@ -80,12 +177,19 @@ function Dashboard() {
   const [selectedBar, setSelectedBar] = useState(null);
   const [selectedSlice, setSelectedSlice] = useState(null);
 
+  const closePopup = useCallback(() => {
+    setSelectedBar(null);
+    setSelectedSlice(null);
+  }, []);
+
   const handleBarClick = useCallback((data) => {
-    setSelectedBar((prev) => (prev === data.name ? null : data.name));
+    setSelectedSlice(null);
+    setSelectedBar(data);
   }, []);
 
   const handlePieClick = useCallback((data) => {
-    setSelectedSlice((prev) => (prev === data.name ? null : data.name));
+    setSelectedBar(null);
+    setSelectedSlice(data);
   }, []);
 
   // ===== DERIVE DATA FROM mockTransactions =====
@@ -232,11 +336,6 @@ function Dashboard() {
                 dataKey="amount"
                 fill="#FFFFFF"
                 radius={[0, 0, 0, 0]}
-                activeBar={(entry) =>
-                  selectedBar === entry.name
-                    ? { fill: '#000000', stroke: '#FFFFFF', strokeWidth: 4 }
-                    : { fill: '#FFFFFF' }
-                }
               />
             </BarChart>
           </ResponsiveContainer>
@@ -269,26 +368,6 @@ function Dashboard() {
                 label={isMobile ? false : renderPieLabel}
                 labelLine={isMobile ? false : { stroke: '#FFFFFF', strokeWidth: 1 }}
                 isAnimationActive={false}
-                activeShape={(props) => {
-                  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-                  const isSelected = selectedSlice === props.name;
-                  return (
-                    <g>
-                      <path
-                        d={`
-                          M ${cx + (outerRadius + (isSelected ? 8 : 0)) * Math.cos(-startAngle * Math.PI / 180)} ${cy + (outerRadius + (isSelected ? 8 : 0)) * Math.sin(-startAngle * Math.PI / 180)}
-                          A ${outerRadius + (isSelected ? 8 : 0)} ${outerRadius + (isSelected ? 8 : 0)} 0 ${endAngle - startAngle > 180 ? 1 : 0} 1 ${cx + (outerRadius + (isSelected ? 8 : 0)) * Math.cos(-endAngle * Math.PI / 180)} ${cy + (outerRadius + (isSelected ? 8 : 0)) * Math.sin(-endAngle * Math.PI / 180)}
-                          L ${cx + (innerRadius - (isSelected ? 4 : 0)) * Math.cos(-endAngle * Math.PI / 180)} ${cy + (innerRadius - (isSelected ? 4 : 0)) * Math.sin(-endAngle * Math.PI / 180)}
-                          A ${innerRadius - (isSelected ? 4 : 0)} ${innerRadius - (isSelected ? 4 : 0)} 0 ${endAngle - startAngle > 180 ? 1 : 0} 0 ${cx + (innerRadius - (isSelected ? 4 : 0)) * Math.cos(-startAngle * Math.PI / 180)} ${cy + (innerRadius - (isSelected ? 4 : 0)) * Math.sin(-startAngle * Math.PI / 180)}
-                          Z
-                        `}
-                        fill={isSelected ? '#000000' : fill}
-                        stroke="#FFFFFF"
-                        strokeWidth={isSelected ? 4 : 2}
-                      />
-                    </g>
-                  );
-                }}
                 paddingAngle={2}
               >
                 {pieData.map((entry, index) => (
@@ -304,6 +383,35 @@ function Dashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* ===== POPUP: Bar selected ===== */}
+      {selectedBar && (
+        <BrutalistPopup
+          title={`BAR DETAIL: ${selectedBar.name}`}
+          onClose={closePopup}
+          isMobile={isMobile}
+        >
+          <div>NAME: {selectedBar.name}</div>
+          <div>AMOUNT: {formatIDR(selectedBar.amount)}</div>
+        </BrutalistPopup>
+      )}
+
+      {/* ===== POPUP: Pie slice selected ===== */}
+      {selectedSlice && (() => {
+        const totalPie = pieData.reduce((sum, d) => sum + d.value, 0);
+        const pct = totalPie > 0 ? ((selectedSlice.value / totalPie) * 100).toFixed(1) : '0.0';
+        return (
+          <BrutalistPopup
+            title={`SLICE DETAIL: ${selectedSlice.name.toUpperCase()}`}
+            onClose={closePopup}
+            isMobile={isMobile}
+          >
+            <div>NAME: {selectedSlice.name.toUpperCase()}</div>
+            <div>VALUE: {formatIDR(selectedSlice.value)}</div>
+            <div>PERCENTAGE: {pct}%</div>
+          </BrutalistPopup>
+        );
+      })()}
     </div>
   );
 }
