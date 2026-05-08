@@ -133,7 +133,7 @@ function TransactionList() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {t.type === 'in' ? '+' : '-'}${formatCurrency(t.amount)}
+                {t.type === 'in' ? '+' : '-'}Rp. {formatCurrency(t.amount)}
               </span>
 
               {/* DELETE */}

@@ -67,7 +67,7 @@ function Dashboard() {
             <FiDollarSign size={24} />
             <span style={labelStyle}>TOTAL BALANCE</span>
           </div>
-          <span style={valueStyle}>${formatCurrency(summary.totalBalance)}</span>
+          <span style={valueStyle}>Rp. {formatCurrency(summary.totalBalance)}</span>
         </div>
 
         {/* MONTHLY IN */}
@@ -76,7 +76,7 @@ function Dashboard() {
             <FiTrendingUp size={24} />
             <span style={labelStyle}>MONTHLY IN</span>
           </div>
-          <span style={valueStyle}>${formatCurrency(summary.monthlyIn)}</span>
+          <span style={valueStyle}>Rp. {formatCurrency(summary.monthlyIn)}</span>
         </div>
 
         {/* MONTHLY OUT */}
@@ -85,7 +85,7 @@ function Dashboard() {
             <FiTrendingDown size={24} />
             <span style={labelStyle}>MONTHLY OUT</span>
           </div>
-          <span style={valueStyle}>${formatCurrency(summary.monthlyOut)}</span>
+          <span style={valueStyle}>Rp. {formatCurrency(summary.monthlyOut)}</span>
         </div>
       </div>
 
