@@ -347,7 +347,7 @@ function Dashboard() {
           </span>
           <ResponsiveContainer width="100%" height={isMobile ? 260 : 280}>
             <PieChart
-              margin={{ top: isMobile ? 10 : 35, right: 20, bottom: isMobile ? 10 : 50, left: 20 }}
+              margin={{ top: isMobile ? 10 : 35, right: 20, bottom: isMobile ? 10 : 70, left: 20 }}
               onClick={(e) => {
                 if (e && e.activePayload && e.activePayload[0]) {
                   handlePieClick(e.activePayload[0].payload);
@@ -383,7 +383,7 @@ function Dashboard() {
                 layout="horizontal"
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ paddingTop: isMobile ? '12px' : '24px' }}
+                wrapperStyle={{ paddingTop: isMobile ? '12px' : '48px' }}
                 contentStyle={{ borderRadius: '0px' }}
               />
             </PieChart>
