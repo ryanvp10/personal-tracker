@@ -23,8 +23,11 @@ function TransactionList() {
       ? transactions
       : transactions.filter((t) => t.type === filter);
 
-  const formatCurrency = (val) =>
-    val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatCurrency = (val) => {
+    // Indonesian Rupiah format: dots for thousands, no decimals
+    const integerPart = Math.floor(val);
+    return integerPart.toLocaleString('de-DE'); // de-DE uses dots for thousands
+  };
 
   const handleDelete = (id) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));

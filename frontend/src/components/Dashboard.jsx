@@ -34,8 +34,11 @@ function Dashboard() {
     monthlyOut: 4320.75,
   };
 
-  const formatCurrency = (val) =>
-    val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatCurrency = (val) => {
+    // Indonesian Rupiah format: dots for thousands, no decimals
+    const integerPart = Math.floor(val);
+    return integerPart.toLocaleString('de-DE'); // de-DE uses dots for thousands
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
