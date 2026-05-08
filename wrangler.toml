@@ -1,0 +1,6 @@
+name = "personal-tracker"
+compatibility_date = "2026-05-08"
+
+[pages]
+  build_command = "cd frontend && npm install && npm run build"
+  dist_dir = "frontend/dist"

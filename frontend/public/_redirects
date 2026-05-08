@@ -1,0 +1,4 @@
+# SPA routing: redirect all requests to index.html
+# Required for React Router to work on Cloudflare Pages
+
+/* /index.html 200
