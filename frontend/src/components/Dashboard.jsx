@@ -347,7 +347,7 @@ function Dashboard() {
           </span>
           <ResponsiveContainer width="100%" height={isMobile ? 260 : 280}>
             <PieChart
-              margin={{ top: 40, right: 20, bottom: 20, left: 20 }}
+              margin={{ top: 10, right: 20, bottom: isMobile ? 10 : 50, left: 20 }}
               onClick={(e) => {
                 if (e && e.activePayload && e.activePayload[0]) {
                   handlePieClick(e.activePayload[0].payload);
@@ -361,7 +361,7 @@ function Dashboard() {
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={isMobile ? 80 : 110}
+                outerRadius={isMobile ? 80 : 100}
                 innerRadius={isMobile ? 30 : 40}
                 stroke="#000000"
                 strokeWidth={2}
@@ -378,7 +378,16 @@ function Dashboard() {
                 formatter={(value, name) => [formatIDR(value), name.toUpperCase()]}
                 {...tooltipStyle}
               />
-              <Legend formatter={renderLegendText} />
+              {!isMobile && (
+                <Legend
+                  formatter={renderLegendText}
+                  layout="horizontal"
+                  verticalAlign="bottom"
+                  align="center"
+                  wrapperStyle={{ paddingTop: '24px' }}
+                  contentStyle={{ borderRadius: '0px' }}
+                />
+              )}
             </PieChart>
           </ResponsiveContainer>
         </div>
