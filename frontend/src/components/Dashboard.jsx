@@ -378,16 +378,14 @@ function Dashboard() {
                 formatter={(value, name) => [formatIDR(value), name.toUpperCase()]}
                 {...tooltipStyle}
               />
-              {!isMobile && (
-                <Legend
-                  formatter={renderLegendText}
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                  wrapperStyle={{ paddingTop: '24px' }}
-                  contentStyle={{ borderRadius: '0px' }}
-                />
-              )}
+              <Legend
+                formatter={renderLegendText}
+                layout="horizontal"
+                verticalAlign="bottom"
+                align="center"
+                wrapperStyle={{ paddingTop: isMobile ? '12px' : '24px' }}
+                contentStyle={{ borderRadius: '0px' }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
