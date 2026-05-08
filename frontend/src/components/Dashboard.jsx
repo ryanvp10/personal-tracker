@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign } from 'react-icons/fi';
 import {
   BarChart,
@@ -75,6 +75,18 @@ const renderPieLabel = ({ name, value }) => `${name.toUpperCase()} ${formatIDR(v
 
 function Dashboard() {
   const isMobile = useIsMobile(640);
+
+  // ===== CHART INTERACTION STATE =====
+  const [selectedBar, setSelectedBar] = useState(null);
+  const [selectedSlice, setSelectedSlice] = useState(null);
+
+  const handleBarClick = useCallback((data) => {
+    setSelectedBar((prev) => (prev === data.name ? null : data.name));
+  }, []);
+
+  const handlePieClick = useCallback((data) => {
+    setSelectedSlice((prev) => (prev === data.name ? null : data.name));
+  }, []);
 
   // ===== DERIVE DATA FROM mockTransactions =====
   const { summary, barData, pieData } = useMemo(() => {
@@ -188,7 +200,15 @@ function Dashboard() {
             <BarChart
               data={barData}
               barCategoryGap="30%"
+              barSize={isMobile ? 48 : 64}
+              maxBarSize={80}
               margin={isMobile ? { top: 5, right: 0, left: -15, bottom: 5 } : { top: 5, right: 10, left: 0, bottom: 5 }}
+              onClick={(e) => {
+                if (e && e.activePayload && e.activePayload[0]) {
+                  handleBarClick(e.activePayload[0].payload);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               <CartesianGrid stroke="#FFFFFF" strokeDasharray="0" />
               <XAxis
@@ -208,7 +228,16 @@ function Dashboard() {
                 {...tooltipStyle}
                 cursor={{ fill: '#222222' }}
               />
-              <Bar dataKey="amount" fill="#FFFFFF" radius={[0, 0, 0, 0]} />
+              <Bar
+                dataKey="amount"
+                fill="#FFFFFF"
+                radius={[0, 0, 0, 0]}
+                activeBar={(entry) =>
+                  selectedBar === entry.name
+                    ? { fill: '#000000', stroke: '#FFFFFF', strokeWidth: 4 }
+                    : { fill: '#FFFFFF' }
+                }
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -218,21 +247,49 @@ function Dashboard() {
           <span style={{ ...labelStyle, textAlign: 'center', marginBottom: '16px' }}>
             SPENDING BY CATEGORY
           </span>
-          <ResponsiveContainer width="100%" height={isMobile ? 220 : 280}>
-            <PieChart>
+          <ResponsiveContainer width="100%" height={isMobile ? 260 : 280}>
+            <PieChart
+              onClick={(e) => {
+                if (e && e.activePayload && e.activePayload[0]) {
+                  handlePieClick(e.activePayload[0].payload);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            >
               <Pie
                 data={pieData}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={isMobile ? 60 : 100}
-                innerRadius={0}
+                outerRadius={isMobile ? 80 : 110}
+                innerRadius={isMobile ? 30 : 40}
                 stroke="#000000"
                 strokeWidth={2}
                 label={isMobile ? false : renderPieLabel}
                 labelLine={isMobile ? false : { stroke: '#FFFFFF', strokeWidth: 1 }}
                 isAnimationActive={false}
+                activeShape={(props) => {
+                  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+                  const isSelected = selectedSlice === props.name;
+                  return (
+                    <g>
+                      <path
+                        d={`
+                          M ${cx + (outerRadius + (isSelected ? 8 : 0)) * Math.cos(-startAngle * Math.PI / 180)} ${cy + (outerRadius + (isSelected ? 8 : 0)) * Math.sin(-startAngle * Math.PI / 180)}
+                          A ${outerRadius + (isSelected ? 8 : 0)} ${outerRadius + (isSelected ? 8 : 0)} 0 ${endAngle - startAngle > 180 ? 1 : 0} 1 ${cx + (outerRadius + (isSelected ? 8 : 0)) * Math.cos(-endAngle * Math.PI / 180)} ${cy + (outerRadius + (isSelected ? 8 : 0)) * Math.sin(-endAngle * Math.PI / 180)}
+                          L ${cx + (innerRadius - (isSelected ? 4 : 0)) * Math.cos(-endAngle * Math.PI / 180)} ${cy + (innerRadius - (isSelected ? 4 : 0)) * Math.sin(-endAngle * Math.PI / 180)}
+                          A ${innerRadius - (isSelected ? 4 : 0)} ${innerRadius - (isSelected ? 4 : 0)} 0 ${endAngle - startAngle > 180 ? 1 : 0} 0 ${cx + (innerRadius - (isSelected ? 4 : 0)) * Math.cos(-startAngle * Math.PI / 180)} ${cy + (innerRadius - (isSelected ? 4 : 0)) * Math.sin(-startAngle * Math.PI / 180)}
+                          Z
+                        `}
+                        fill={isSelected ? '#000000' : fill}
+                        stroke="#FFFFFF"
+                        strokeWidth={isSelected ? 4 : 2}
+                      />
+                    </g>
+                  );
+                }}
+                paddingAngle={2}
               >
                 {pieData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} radius={0} />
