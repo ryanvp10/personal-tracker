@@ -70,8 +70,40 @@ const renderLegendText = (value) => (
   </span>
 );
 
-// Brutalist pie label: category + amount
-const renderPieLabel = ({ name, value }) => `${name.toUpperCase()} ${formatIDR(value)}`;
+// Brutalist pie label render function: draws each label with category + amount.
+// Uses <text> with black stroke (outline) + white fill so it's readable on ANY slice color.
+// Position is pushed slightly outside the outerRadius via (x, y) from the label render props.
+const renderPieLabel = ({ name, value, x, y, midAngle, outerRadius }) => {
+  // Push the label a bit further out so it doesn't overlap the slice edge
+  const OFFSET = 14;
+  const RADIAN = Math.PI / 180;
+  const nx = x + OFFSET * Math.cos(-midAngle * RADIAN);
+  const ny = y + OFFSET * Math.sin(-midAngle * RADIAN);
+  // Anchor to left or right depending which side of the pie we're on
+  const anchor = midAngle > 90 && midAngle < 270 ? 'end' : 'start';
+
+  return (
+    <text
+      x={nx}
+      y={ny}
+      textAnchor={anchor}
+      dominantBaseline="central"
+      fill="#FFFFFF"
+      stroke="#000000"
+      strokeWidth={3}
+      paintOrder="stroke"
+      style={{
+        fontSize: '0.65rem',
+        fontWeight: 900,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        fontFamily: 'inherit',
+      }}
+    >
+      {`${name.toUpperCase()} ${formatIDR(value)}`}
+    </text>
+  );
+};
 
 // ===== BRUTALIST POPUP =====
 function BrutalistPopup({ title, children, onClose, isMobile }) {
@@ -348,6 +380,7 @@ function Dashboard() {
           </span>
           <ResponsiveContainer width="100%" height={isMobile ? 260 : 280}>
             <PieChart
+              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
               onClick={(e) => {
                 if (e && e.activePayload && e.activePayload[0]) {
                   handlePieClick(e.activePayload[0].payload);
