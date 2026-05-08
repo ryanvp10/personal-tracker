@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from 'react-icons/fi';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { mockTransactions } from '../mockData.js';
 import theme from '../theme';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -194,6 +195,176 @@ function TransactionList() {
     doc.save('transactions.pdf');
   };
 
+  const sanitizeForExcel = (value) => {
+    if (value === null || value === undefined) return value;
+    const str = String(value);
+    if (str.startsWith('=') || str.startsWith('+') || str.startsWith('-') || str.startsWith('@')) {
+      return `'${str}`;
+    }
+    return str;
+  };
+
+  const handleExportExcel = () => {
+    // Build worksheet data
+    const wb = XLSX.utils.book_new();
+
+    // Title row
+    const aoa = [['TRANSACTIONS']];
+
+    // Header row
+    aoa.push(['Note', 'Category', 'Date', 'Type', 'Amount']);
+
+    // Data rows
+    filtered.forEach((t) => {
+      aoa.push([
+        sanitizeForExcel(t.note || 'NO NOTE'),
+        sanitizeForExcel(t.category),
+        formatDate(t.date),
+        t.type === 'in' ? 'INCOME' : 'EXPENSES',
+        `${t.type === 'in' ? '+' : '-'}Rp. ${formatCurrency(t.amount)}`,
+      ]);
+    });
+
+    // Blank row before summary
+    aoa.push([]);
+
+    // Calculate summary totals from filtered transactions
+    const totalIncome = filtered
+      .filter((t) => t.type === 'in')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const totalExpenses = filtered
+      .filter((t) => t.type === 'out')
+      .reduce((sum, t) => sum + t.amount, 0);
+    const remainingBudget = totalIncome - totalExpenses;
+
+    // Summary rows
+    aoa.push(['TOTAL INCOME', `+Rp. ${formatCurrency(totalIncome)}`]);
+    aoa.push(['TOTAL EXPENSES', `-Rp. ${formatCurrency(totalExpenses)}`]);
+    aoa.push([
+      'REMAINING BUDGET',
+      `${remainingBudget >= 0 ? '+' : '-'}Rp. ${formatCurrency(Math.abs(remainingBudget))}`,
+    ]);
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 30 }, // Note
+      { wch: 20 }, // Category
+      { wch: 14 }, // Date
+      { wch: 12 }, // Type
+      { wch: 28 }, // Amount
+    ];
+
+    // Cell styles function
+    const makeCellRef = (r, c) => XLSX.utils.encode_cell({ r, c });
+
+    // Build styles object
+    const styles = {};
+
+    // Row 1 (title) - row index 0
+    for (let c = 0; c < 5; c++) {
+      const ref = makeCellRef(0, c);
+      styles[ref] = {
+        s: {
+          font: { bold: true, sz: 14, color: { rgb: '000000' } },
+          fill: { fgColor: { rgb: 'FFFFFF' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } },
+          },
+        },
+      };
+    }
+
+    // Header row (row index 1) - black bg, white text
+    for (let c = 0; c < 5; c++) {
+      const ref = makeCellRef(1, c);
+      styles[ref] = {
+        s: {
+          font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' } },
+          fill: { fgColor: { rgb: '000000' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: {
+            top: { style: 'thin', color: { rgb: '000000' } },
+            bottom: { style: 'thin', color: { rgb: '000000' } },
+            left: { style: 'thin', color: { rgb: '000000' } },
+            right: { style: 'thin', color: { rgb: '000000' } },
+          },
+        },
+      };
+    }
+
+    // Data rows (starting at row index 2)
+    filtered.forEach((t, idx) => {
+      const r = idx + 2;
+      for (let c = 0; c < 5; c++) {
+        const ref = makeCellRef(r, c);
+        styles[ref] = {
+          s: {
+            font: { sz: 10, color: { rgb: '000000' } },
+            fill: { fgColor: { rgb: 'FFFFFF' } },
+            alignment:
+              c === 4 ? { horizontal: 'right', vertical: 'center' } : { horizontal: 'left', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } },
+            },
+          },
+        };
+      }
+    });
+
+    // Summary rows (at the end)
+    const summaryStartRow = aoa.length - 3;
+    for (let i = 0; i < 3; i++) {
+      const r = summaryStartRow + i;
+      for (let c = 0; c < 5; c++) {
+        const ref = makeCellRef(r, c);
+        styles[ref] = {
+          s: {
+            font: { bold: true, sz: 10, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '000000' } },
+            alignment:
+              c >= 1 ? { horizontal: 'right', vertical: 'center' } : { horizontal: 'left', vertical: 'center' },
+            border: {
+              top: { style: 'thin', color: { rgb: '000000' } },
+              bottom: { style: 'thin', color: { rgb: '000000' } },
+              left: { style: 'thin', color: { rgb: '000000' } },
+              right: { style: 'thin', color: { rgb: '000000' } },
+            },
+          },
+        };
+      }
+    }
+
+    // Apply styles to worksheet
+    if (!ws['!dataValidation']) ws['!dataValidation'] = [];
+
+    // Merge title row across 5 columns
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+
+    // Store original cells for styled export
+    const originalCells = {};
+    XLSX.utils.sheet_to_json(ws, { header: 1, raw: false }).forEach((row, rIdx) => {
+      row.forEach((cell, cIdx) => {
+        const ref = makeCellRef(rIdx, cIdx);
+        if (!originalCells[ref]) originalCells[ref] = {};
+        originalCells[ref].v = cell;
+      });
+    });
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+
+    // Use writeFile with cellStyles option
+    XLSX.writeFile(wb, 'transactions.xlsx', { cellStyles: true, bookSST: false, styles: styles, cellDates: false });
+  };
+
   const handleDelete = (id) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
@@ -244,7 +415,7 @@ function TransactionList() {
             <FiDownload size={14} /> PDF
           </button>
           <button
-            onClick={() => console.log('Export Excel')}
+            onClick={handleExportExcel}
             style={{
               display: 'flex',
               alignItems: 'center',
