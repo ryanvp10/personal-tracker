@@ -200,7 +200,7 @@ function LandingPage() {
         {/* ===== HERO SECTION ===== */}
         <section style={heroStyle}>
           <h1 style={titleStyle}>
-            PERSONAL
+            FINANCIAL
             <br />
             TRACKER
           </h1>
