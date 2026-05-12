@@ -1,14 +1,18 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiPlus, FiList, FiDollarSign } from 'react-icons/fi';
+import { FiPlus, FiList, FiDollarSign, FiLogOut } from 'react-icons/fi';
 import theme from '../theme';
 
 const navItems = [
-  { to: '/', label: 'HOME', icon: <FiHome /> },
   { to: '/dashboard', label: 'DASHBOARD', icon: <FiDollarSign /> },
   { to: '/add', label: 'ADD', icon: <FiPlus /> },
   { to: '/transactions', label: 'TRANSACTIONS', icon: <FiList /> },
 ];
+
+function handleLogout() {
+  sessionStorage.removeItem('isGuest');
+  window.location.href = '/login';
+}
 
 function Layout({ children }) {
   const location = useLocation();
@@ -83,6 +87,29 @@ function Layout({ children }) {
               </Link>
             );
           })}
+          <button
+            onClick={handleLogout}
+            aria-label="LOGOUT"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '10px 16px',
+              border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
+              backgroundColor: theme.colors.background,
+              color: theme.colors.text,
+              textDecoration: 'none',
+              fontWeight: 900,
+              fontSize: '0.7rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'none',
+            }}
+          >
+            <FiLogOut />
+            <span>LOGOUT</span>
+          </button>
         </nav>
       </header>
 
