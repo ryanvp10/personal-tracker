@@ -2,105 +2,93 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import theme from './theme';
 import Layout from './components/Layout';
+import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
 
-function Home() {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '60vh',
-        gap: '32px',
-        textAlign: 'center',
-      }}
-    >
-      <h2
-        style={{
-          fontSize: 'clamp(2rem, 8vw, 4rem)',
-          fontWeight: 900,
-          letterSpacing: '0.1em',
-          margin: 0,
-          lineHeight: 1.1,
-        }}
-      >
-        FINANCIAL
-        <br />
-        TRACKER
-      </h2>
-      <div
-        style={{
-          width: '100px',
-          height: '6px',
-          backgroundColor: theme.colors.text,
-        }}
-      />
-      <p
-        style={{
-          fontSize: '0.85rem',
-          letterSpacing: '0.1em',
-          color: theme.colors.textMuted,
-          maxWidth: '400px',
-          lineHeight: 1.6,
-        }}
-      >
-        TRACK YOUR INCOME AND EXPENSES WITH BRUTAL PRECISION.
-      </p>
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Link
-          to="/dashboard"
-          style={{
-            padding: '16px 32px',
-            border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
-            backgroundColor: theme.colors.text,
-            color: theme.colors.background,
-            fontWeight: 900,
-            fontSize: '0.85rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-          }}
-        >
-          VIEW DASHBOARD
-        </Link>
-        <Link
-          to="/add"
-          style={{
-            padding: '16px 32px',
-            border: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`,
-            backgroundColor: theme.colors.background,
-            color: theme.colors.text,
-            fontWeight: 900,
-            fontSize: '0.85rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-          }}
-        >
-          ADD TRANSACTION
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/add" element={<TransactionForm />} />
-          <Route path="/transactions" element={<TransactionList />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Layout><Login /></Layout>} />
+        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+        <Route path="/add" element={<Layout><TransactionForm /></Layout>} />
+        <Route path="/transactions" element={<Layout><TransactionList /></Layout>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </BrowserRouter>
+  );
+}
+
+// Login component for /login route
+function Login() {
+  const handleLogin = () => {
+    // Guest login logic: store session in sessionStorage
+    sessionStorage.setItem('isGuest', 'true');
+    window.location.href = '/dashboard';
+  };
+
+  const containerStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: '60vh',
+    gap: '24px',
+    textAlign: 'center',
+  };
+
+  const titleStyle = {
+    fontSize: 'clamp(2rem, 6vw, 3rem)',
+    fontWeight: 900,
+    letterSpacing: '0.1em',
+    margin: 0,
+    textTransform: 'uppercase',
+  };
+
+  const inputStyle = {
+    width: '100%',
+    maxWidth: '300px',
+    padding: '12px 16px',
+    border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.text,
+    fontSize: '0.85rem',
+    fontWeight: 900,
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+    fontFamily: theme.typography.fontFamily,
+  };
+
+  const buttonStyle = {
+    padding: '14px 32px',
+    border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`,
+    backgroundColor: theme.colors.background,
+    color: theme.colors.text,
+    fontSize: '0.85rem',
+    fontWeight: 900,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    transition: 'none',
+  };
+
+  return (
+    <div style={containerStyle}>
+      <h2 style={titleStyle}>LOGIN</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '300px' }}>
+        <input type="email" placeholder="EMAIL" style={inputStyle} />
+        <input type="password" placeholder="PASSWORD" style={inputStyle} />
+      </div>
+      <button style={buttonStyle} onClick={handleLogin}>
+        LOGIN
+      </button>
+      <p style={{ fontSize: '0.75rem', color: theme.colors.textMuted, letterSpacing: '0.05em', maxWidth: '300px' }}>
+        LEAVE FIELDS EMPTY FOR GUEST ACCESS. SESSION STORED IN SESSIONSTORAGE.
+      </p>
+    </div>
   );
 }
 
