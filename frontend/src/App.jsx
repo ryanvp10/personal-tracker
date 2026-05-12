@@ -12,7 +12,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Layout><Login /></Layout>} />
+        <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
         <Route path="/add" element={<Layout><TransactionForm /></Layout>} />
         <Route path="/transactions" element={<Layout><TransactionList /></Layout>} />
