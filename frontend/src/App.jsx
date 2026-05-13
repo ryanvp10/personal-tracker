@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 import theme from './theme';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
@@ -24,10 +24,16 @@ function App() {
 
 // Login component for /login route
 function Login() {
+  const navigate = useNavigate();
+
   const handleLogin = () => {
     // Guest login logic: store session in sessionStorage
     sessionStorage.setItem('isGuest', 'true');
     window.location.href = '/dashboard';
+  };
+
+  const handleBackHome = () => {
+    navigate('/');
   };
 
   const containerStyle = {
@@ -77,6 +83,9 @@ function Login() {
 
   return (
     <div style={containerStyle}>
+      <button style={{ ...buttonStyle, alignSelf: 'flex-start', fontSize: '0.75rem', padding: '8px 16px', marginBottom: '16px' }} onClick={handleBackHome}>
+        ← BACK TO HOME
+      </button>
       <h2 style={titleStyle}>LOGIN</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '300px' }}>
         <input type="email" placeholder="EMAIL" style={inputStyle} />
