@@ -11,6 +11,7 @@ const navItems = [
 
 function handleLogout() {
   sessionStorage.removeItem('isGuest');
+  sessionStorage.removeItem('guestTransactions');
   window.location.href = '/login';
 }
 
