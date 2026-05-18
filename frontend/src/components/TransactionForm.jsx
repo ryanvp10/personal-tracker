@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiSave, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { useTransactions } from '../context/TransactionsContext';
 import theme from '../theme';
 
 const categories = [
@@ -17,12 +18,14 @@ const categories = [
 ];
 
 function TransactionForm() {
+  const { addTransaction } = useTransactions();
   const [type, setType] = useState('in');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [note, setNote] = useState('');
   const [saved, setSaved] = useState(false);
   const timeoutRef = useRef(null);
+  const { addTransaction } = useTransactions();
 
   useEffect(() => {
     return () => {
@@ -36,8 +39,13 @@ function TransactionForm() {
     e.preventDefault();
     if (!amount || !category) return;
 
-    // Placeholder: log to console
-    console.log('TRANSACTION:', { type, amount: parseFloat(amount), category, note });
+    addTransaction({
+      type,
+      amount: parseFloat(amount),
+      category,
+      note,
+      date: new Date().toISOString().split('T')[0],
+    });
 
     setSaved(true);
     if (timeoutRef.current) {

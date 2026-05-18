@@ -3,7 +3,7 @@ import { FiArrowUp, FiArrowDown, FiFilter, FiTrash2, FiDownload, FiFile } from '
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-import { mockTransactions } from '../mockData.js';
+import { useTransactions } from '../context/TransactionsContext';
 import theme from '../theme';
 import { useIsMobile } from '../hooks/useIsMobile';
 
@@ -71,7 +71,7 @@ const BrutalistSelect = ({ value, onChange, options, isMobile }) => (
 );
 
 function TransactionList() {
-  const [transactions, setTransactions] = useState(mockTransactions);
+  const { transactions, deleteTransaction } = useTransactions();
   const [filter, setFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('all');
@@ -366,7 +366,7 @@ function TransactionList() {
   };
 
   const handleDelete = (id) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    deleteTransaction(id);
   };
 
   return (

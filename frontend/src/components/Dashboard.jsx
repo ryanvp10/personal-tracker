@@ -14,7 +14,7 @@ import {
   Legend,
 } from 'recharts';
 import theme from '../theme';
-import { mockTransactions } from '../mockData.js';
+import { useTransactions } from '../context/TransactionsContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 const cardStyle = {
@@ -171,6 +171,7 @@ function BrutalistPopup({ title, children, onClose, isMobile }) {
 
 function Dashboard() {
   const isMobile = useIsMobile(640);
+  const { transactions } = useTransactions();
 
   // ===== CHART INTERACTION STATE =====
   const [selectedBar, setSelectedBar] = useState(null);
@@ -191,13 +192,13 @@ function Dashboard() {
     setSelectedSlice(data);
   }, []);
 
-  // ===== DERIVE DATA FROM mockTransactions =====
+  // ===== DERIVE DATA FROM transactions =====
   const { summary, barData, pieData } = useMemo(() => {
     let totalIn = 0;
     let totalOut = 0;
     const categoryMap = {};
 
-    mockTransactions.forEach((tx) => {
+    transactions.forEach((tx) => {
       if (tx.type === 'in') {
         totalIn += tx.amount;
       } else if (tx.type === 'out') {
@@ -233,7 +234,7 @@ function Dashboard() {
       barData: bar,
       pieData: pie,
     };
-  }, []);
+  }, [transactions]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 import theme from './theme';
+import { TransactionsProvider } from './context/TransactionsContext';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
@@ -10,7 +11,8 @@ import TransactionList from './components/TransactionList';
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <TransactionsProvider>
+        <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
@@ -18,6 +20,7 @@ function App() {
         <Route path="/transactions" element={<Layout><TransactionList /></Layout>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </TransactionsProvider>
     </BrowserRouter>
   );
 }
