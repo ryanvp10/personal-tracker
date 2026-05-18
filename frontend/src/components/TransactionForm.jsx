@@ -156,12 +156,16 @@ function TransactionForm() {
           </label>
           <input
             id="amount"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            type="text"
+            inputMode="numeric"
+            placeholder="0"
+            value={amount.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+            onChange={(e) => {
+              const rawValue = e.target.value.replace(/\./g, '');
+              if (/^\d*$/.test(rawValue)) {
+                setAmount(rawValue);
+              }
+            }}
             required
           />
         </div>
