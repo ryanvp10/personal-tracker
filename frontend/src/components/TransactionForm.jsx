@@ -25,7 +25,6 @@ function TransactionForm() {
   const [note, setNote] = useState('');
   const [saved, setSaved] = useState(false);
   const timeoutRef = useRef(null);
-  const { addTransaction } = useTransactions();
 
   useEffect(() => {
     return () => {
