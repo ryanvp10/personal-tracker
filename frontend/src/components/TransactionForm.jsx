@@ -159,12 +159,10 @@ function TransactionForm() {
             type="text"
             inputMode="numeric"
             placeholder="0"
-            value={amount.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
+            value={amount ? parseInt(amount, 10).toLocaleString('de-DE') : ''}
             onChange={(e) => {
-              const rawValue = e.target.value.replace(/\./g, '');
-              if (/^\d*$/.test(rawValue)) {
-                setAmount(rawValue);
-              }
+              const raw = e.target.value.replace(/\D/g, '');
+              setAmount(raw);
             }}
             required
           />
