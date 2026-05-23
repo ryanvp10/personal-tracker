@@ -7,48 +7,7 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
-
-const guestLandingButtonStyle = {
-  width: '100%',
-  maxWidth: '420px',
-  padding: '22px 28px',
-  border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`,
-  backgroundColor: theme.colors.background,
-  color: theme.colors.text,
-  fontSize: '1rem',
-  fontWeight: 900,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-  boxShadow: `8px 8px 0 ${theme.colors.border}`,
-};
-
-function LandingPage() {
-  const navigate = useNavigate();
-
-  const handleLogin = () => {
-    localStorage.removeItem('skipAuth');
-    navigate('/login');
-  };
-
-  const handleGuestContinue = () => {
-    localStorage.setItem('skipAuth', 'true');
-    navigate('/dashboard');
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', gap: '24px', textAlign: 'center', padding: '24px' }}>
-      <h1 style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', fontWeight: 900, letterSpacing: '0.12em', margin: 0, textTransform: 'uppercase' }}>Personal Tracker</h1>
-      <p style={{ maxWidth: '680px', margin: 0, fontSize: '0.95rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1.6 }}>
-        Track transactions with your account or continue offline in guest mode.
-      </p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', alignItems: 'center', marginTop: '12px' }}>
-        <button style={guestLandingButtonStyle} onClick={handleLogin}>Login</button>
-        <button style={guestLandingButtonStyle} onClick={handleGuestContinue}>Continue as Guest</button>
-      </div>
-    </div>
-  );
-}
+import LandingPage from './components/LandingPage';
 
 function AppShell() {
   return (
@@ -102,6 +61,11 @@ function Login() {
     }
   };
 
+  const handleGuestContinue = () => {
+    localStorage.setItem('skipAuth', 'true');
+    navigate('/dashboard');
+  };
+
   const handleBackHome = () => navigate('/');
 
   const containerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '24px', textAlign: 'center' };
@@ -119,6 +83,7 @@ function Login() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '300px' }}>
         <button style={{ ...buttonStyle, width: '100%' }} onClick={handleLogin} disabled={loading}>{loading ? 'LOGGING IN...' : 'LOGIN'}</button>
+        <button style={{ ...buttonStyle, width: '100%' }} onClick={handleGuestContinue}>Continue as Guest</button>
       </div>
       {error ? <p style={{ fontSize: '0.75rem', color: theme.colors.text, letterSpacing: '0.05em', maxWidth: '420px', textTransform: 'uppercase' }}>{error}</p> : null}
     </div>
