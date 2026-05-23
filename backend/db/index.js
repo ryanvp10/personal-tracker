@@ -44,7 +44,7 @@ seedHardcodedUsers();
 
 function testConnection() {
   try {
-    const row = db.prepare('SELECT datetime("now") AS time').get();
+    const row = db.prepare("SELECT datetime('now') AS time").get();
     console.log('[DB] Connected to SQLite');
     console.log(`[DB] Server time: ${row.time}`);
     return true;
