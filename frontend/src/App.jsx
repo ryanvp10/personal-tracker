@@ -1,6 +1,7 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import theme from './theme';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { TransactionsProvider } from './context/TransactionsContext';
 import Layout from './components/Layout';
 import LandingPage from './components/LandingPage';
@@ -8,98 +9,82 @@ import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
 
+function ProtectedRoute({ children }) {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  return children;
+}
+
+function AppShell() {
+  return (
+    <TransactionsProvider>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+        <Route path="/add" element={<ProtectedRoute><Layout><TransactionForm /></Layout></ProtectedRoute>} />
+        <Route path="/transactions" element={<ProtectedRoute><Layout><TransactionList /></Layout></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </TransactionsProvider>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <TransactionsProvider>
-        <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
-        <Route path="/add" element={<Layout><TransactionForm /></Layout>} />
-        <Route path="/transactions" element={<Layout><TransactionList /></Layout>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      </TransactionsProvider>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
 
-// Login component for /login route
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    // Guest login logic: store session in sessionStorage
-    sessionStorage.setItem('isGuest', 'true');
-    window.location.href = '/dashboard';
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const handleLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await login(username, password);
+      navigate(location.state?.from || '/dashboard', { replace: true });
+    } catch (err) {
+      setError((err.message || 'LOGIN FAILED').toUpperCase());
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleBackHome = () => {
-    navigate('/');
-  };
+  const handleBackHome = () => navigate('/');
 
-  const containerStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: '60vh',
-    gap: '24px',
-    textAlign: 'center',
-  };
-
-  const titleStyle = {
-    fontSize: 'clamp(2rem, 6vw, 3rem)',
-    fontWeight: 900,
-    letterSpacing: '0.1em',
-    margin: 0,
-    textTransform: 'uppercase',
-  };
-
-  const inputStyle = {
-    width: '100%',
-    maxWidth: '300px',
-    padding: '12px 16px',
-    border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`,
-    backgroundColor: theme.colors.background,
-    color: theme.colors.text,
-    fontSize: '0.85rem',
-    fontWeight: 900,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    fontFamily: theme.typography.fontFamily,
-  };
-
-  const buttonStyle = {
-    padding: '14px 32px',
-    border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`,
-    backgroundColor: theme.colors.background,
-    color: theme.colors.text,
-    fontSize: '0.85rem',
-    fontWeight: 900,
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-    transition: 'none',
-  };
+  const containerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '24px', textAlign: 'center' };
+  const titleStyle = { fontSize: 'clamp(2rem, 6vw, 3rem)', fontWeight: 900, letterSpacing: '0.1em', margin: 0, textTransform: 'uppercase' };
+  const inputStyle = { width: '100%', maxWidth: '300px', padding: '12px 16px', border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`, backgroundColor: theme.colors.background, color: theme.colors.text, fontSize: '0.85rem', fontWeight: 900, letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: theme.typography.fontFamily };
+  const buttonStyle = { padding: '14px 32px', border: `${theme.borders.width} ${theme.borders.style} ${theme.colors.border}`, backgroundColor: theme.colors.background, color: theme.colors.text, fontSize: '0.85rem', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', transition: 'none' };
 
   return (
     <div style={containerStyle}>
-      <button style={{ ...buttonStyle, alignSelf: 'flex-start', fontSize: '0.75rem', padding: '8px 16px', marginBottom: '16px' }} onClick={handleBackHome}>
-        ← BACK TO HOME
-      </button>
+      <button style={{ ...buttonStyle, alignSelf: 'flex-start', fontSize: '0.75rem', padding: '8px 16px', marginBottom: '16px' }} onClick={handleBackHome}>← BACK TO HOME</button>
       <h2 style={titleStyle}>LOGIN</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '300px' }}>
-        <input type="email" placeholder="EMAIL" style={inputStyle} />
-        <input type="password" placeholder="PASSWORD" style={inputStyle} />
+        <input type="text" placeholder="USERNAME" value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} autoComplete="username" />
+        <input type="password" placeholder="PASSWORD" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} autoComplete="current-password" />
       </div>
-      <button style={buttonStyle} onClick={handleLogin}>
-        LOGIN
-      </button>
-      <p style={{ fontSize: '0.75rem', color: theme.colors.textMuted, letterSpacing: '0.05em', maxWidth: '300px' }}>
-        LEAVE FIELDS EMPTY FOR GUEST ACCESS. SESSION STORED IN SESSIONSTORAGE.
-      </p>
+      <button style={buttonStyle} onClick={handleLogin} disabled={loading}>{loading ? 'LOGGING IN...' : 'LOGIN'}</button>
+      <p style={{ fontSize: '0.75rem', color: theme.colors.textMuted, letterSpacing: '0.05em', maxWidth: '420px', textTransform: 'uppercase' }}>USE YAN / YAN123 OR PARTNER / PARTNER123 TO ACCESS THE TRACKER.</p>
+      {error ? <p style={{ fontSize: '0.75rem', color: theme.colors.text, letterSpacing: '0.05em', maxWidth: '420px', textTransform: 'uppercase' }}>{error}</p> : null}
     </div>
   );
 }

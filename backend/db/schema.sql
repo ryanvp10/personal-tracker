@@ -1,27 +1,27 @@
 -- =============================================
--- PERSONAL TRACKER - DATABASE SCHEMA
+-- PERSONAL TRACKER - DATABASE SCHEMA (SQLite)
 -- =============================================
--- Run this SQL to set up the database:
---   psql -U postgres -d personal_tracker -f backend/db/schema.sql
 
--- Create the database (run as superuser if needed):
--- CREATE DATABASE personal_tracker;
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  display_name TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 
 -- Transactions table
 CREATE TABLE IF NOT EXISTS transactions (
-  id SERIAL PRIMARY KEY,
-  type VARCHAR(3) CHECK (type IN ('in', 'out')) NOT NULL,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT CHECK (type IN ('in', 'out')) NOT NULL,
   amount INTEGER NOT NULL,
-  category VARCHAR(50),
+  category TEXT,
   note TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Index for faster queries by date
+-- Indexes
 CREATE INDEX IF NOT EXISTS idx_transactions_created_at ON transactions(created_at DESC);
-
--- Index for filtering by type
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
-
--- Index for filtering by category
 CREATE INDEX IF NOT EXISTS idx_transactions_category ON transactions(category);

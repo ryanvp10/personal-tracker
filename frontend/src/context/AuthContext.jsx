@@ -1,0 +1,66 @@
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+
+const AuthContext = createContext();
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const TOKEN_KEY = 'authToken';
+const USER_KEY = 'authUser';
+
+function getStoredAuth() {
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  const userRaw = sessionStorage.getItem(USER_KEY);
+  const user = userRaw ? JSON.parse(userRaw) : null;
+  return { token, user };
+}
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState(() => getStoredAuth().token);
+  const [user, setUser] = useState(() => getStoredAuth().user);
+
+  useEffect(() => {
+    if (token) sessionStorage.setItem(TOKEN_KEY, token);
+    else sessionStorage.removeItem(TOKEN_KEY);
+  }, [token]);
+
+  useEffect(() => {
+    if (user) sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+    else sessionStorage.removeItem(USER_KEY);
+  }, [user]);
+
+  const value = useMemo(() => ({
+    token,
+    user,
+    isAuthenticated: Boolean(token),
+    login: async (username, password) => {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) throw new Error(payload.error || 'Login failed');
+      setToken(payload.data.token);
+      setUser(payload.data.user);
+      return payload.data.user;
+    },
+    logout: () => {
+      setToken(null);
+      setUser(null);
+    },
+  }), [token, user]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  return context;
+}
+
+export function authFetch(path, options = {}) {
+  const { token } = getStoredAuth();
+  const headers = new Headers(options.headers || {});
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  if (!headers.has('Content-Type') && options.body) headers.set('Content-Type', 'application/json');
+  return fetch(`${API_BASE}${path}`, { ...options, headers });
+}

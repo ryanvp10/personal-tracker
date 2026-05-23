@@ -5,7 +5,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { testConnection } = require('./db');
+const { testConnection, seedHardcodedUsers } = require('./db');
+const { authenticateToken } = require('./auth');
+const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
 const { initBot } = require('./telegram/bot');
 
@@ -41,7 +43,8 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: NODE_ENV, uptime: process.uptime() });
 });
 
-app.use('/api', transactionRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api', authenticateToken, transactionRoutes);
 
 app.get('/', (req, res) => {
   res.json({
@@ -49,6 +52,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     endpoints: {
       'GET  /api/health': 'Health check',
+      'POST /api/auth/login': 'Authenticate user and return JWT',
       'GET  /api/transactions': 'List all transactions',
       'POST /api/transactions': 'Create transaction',
       'DELETE /api/transactions/:id': 'Delete transaction',
@@ -74,6 +78,7 @@ async function start() {
   console.log('───────────────────────────────────────');
 
   testConnection();
+  seedHardcodedUsers();
   initBot();
   app.listen(PORT, '0.0.0.0', () => console.log(`[HTTP] Server running on http://0.0.0.0:${PORT}`));
 }

@@ -3,6 +3,10 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
+const { authenticateToken } = require('../auth');
+
+// Protect all transaction routes — require authentication
+router.use(authenticateToken);
 
 function parseLimitOffset(query) {
   const limit = Math.max(1, Math.min(500, parseInt(query.limit || '100', 10) || 100));
@@ -17,13 +21,21 @@ function monthBounds() {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
+function userScopeClause(req) {
+  return {
+    clause: 'user_id = ?',
+    params: [req.user.sub],
+  };
+}
+
 router.get('/transactions', async (req, res) => {
   try {
     const { type, category } = req.query;
     const { limit, offset } = parseLimitOffset(req.query);
+    const scope = userScopeClause(req);
 
-    const where = ['1=1'];
-    const params = [];
+    const where = [scope.clause, '1=1'];
+    const params = [...scope.params];
     if (type) {
       where.push('type = ?');
       params.push(type);
@@ -62,9 +74,9 @@ router.post('/transactions', async (req, res) => {
     if (Number.isNaN(parsedAmount) || parsedAmount <= 0) return res.status(400).json({ success: false, error: 'Amount must be a positive integer' });
 
     const info = db.prepare(`
-      INSERT INTO transactions (type, amount, category, note)
-      VALUES (?, ?, ?, ?)
-    `).run(type, parsedAmount, category || null, note || null);
+      INSERT INTO transactions (user_id, type, amount, category, note)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(req.user.sub, type, parsedAmount, category || null, note || null);
 
     const saved = db.prepare('SELECT * FROM transactions WHERE id = ?').get(info.lastInsertRowid);
     res.status(201).json({ success: true, data: saved });
@@ -79,10 +91,10 @@ router.delete('/transactions/:id', async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id) || id <= 0) return res.status(400).json({ success: false, error: 'Invalid transaction ID. Must be a positive integer.' });
 
-    const existing = db.prepare('SELECT * FROM transactions WHERE id = ?').get(id);
+    const existing = db.prepare('SELECT * FROM transactions WHERE id = ? AND user_id = ?').get(id, req.user.sub);
     if (!existing) return res.status(404).json({ success: false, error: 'Transaction not found' });
 
-    db.prepare('DELETE FROM transactions WHERE id = ?').run(id);
+    db.prepare('DELETE FROM transactions WHERE id = ? AND user_id = ?').run(id, req.user.sub);
     res.json({ success: true, data: existing, message: 'Transaction deleted' });
   } catch (err) {
     console.error('[API] DELETE /transactions/:id error:', err.message);
@@ -100,8 +112,8 @@ router.get('/summary', async (req, res) => {
         COALESCE(SUM(CASE WHEN type = 'in' THEN 1 ELSE 0 END), 0) AS income_count,
         COALESCE(SUM(CASE WHEN type = 'out' THEN 1 ELSE 0 END), 0) AS expense_count
       FROM transactions
-      WHERE datetime(created_at) >= datetime(?) AND datetime(created_at) < datetime(?)
-    `).get(start, end);
+      WHERE user_id = ? AND datetime(created_at) >= datetime(?) AND datetime(created_at) < datetime(?)
+    `).get(req.user.sub, start, end);
 
     const summary = {
       total_income: Number(row.total_income || 0),
@@ -124,10 +136,10 @@ router.get('/categories', async (req, res) => {
     const rows = db.prepare(`
       SELECT category, SUM(amount) AS total, COUNT(*) AS count
       FROM transactions
-      WHERE type = 'out' AND datetime(created_at) >= datetime(?) AND datetime(created_at) < datetime(?)
+      WHERE user_id = ? AND type = 'out' AND datetime(created_at) >= datetime(?) AND datetime(created_at) < datetime(?)
       GROUP BY category
       ORDER BY total DESC
-    `).all(start, end);
+    `).all(req.user.sub, start, end);
 
     res.json({
       success: true,

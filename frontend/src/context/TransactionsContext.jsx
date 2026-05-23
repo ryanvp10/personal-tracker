@@ -1,53 +1,55 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { mockTransactions } from '../mockData.js';
+import { authFetch, useAuth } from './AuthContext';
 
 const TransactionsContext = createContext();
 
 export function TransactionsProvider({ children }) {
-  const [transactions, setTransactions] = useState(() => {
-    // Load guest transactions from sessionStorage
-    const stored = sessionStorage.getItem('guestTransactions');
-    const guestTransactions = stored ? JSON.parse(stored) : [];
-    
-    // Merge mockTransactions with guest transactions
-    // Use mockTransactions as base, then add any guest transactions
-    return [...mockTransactions, ...guestTransactions];
-  });
+  const { isAuthenticated } = useAuth();
+  const [transactions, setTransactions] = useState([]);
 
-  // Persist guest transactions to sessionStorage whenever transactions change
   useEffect(() => {
-    // Only persist transactions that were added by the guest (not mock ones)
-    const guestTransactions = transactions.filter(
-      t => !mockTransactions.some(m => m.id === t.id)
-    );
-    sessionStorage.setItem('guestTransactions', JSON.stringify(guestTransactions));
-  }, [transactions]);
+    let active = true;
 
-  const addTransaction = (transaction) => {
-    const newTransaction = {
-      id: Date.now(),
-      ...transaction,
-    };
-    setTransactions((prev) => [...prev, newTransaction]);
+    async function load() {
+      if (!isAuthenticated) {
+        if (active) setTransactions([]);
+        return;
+      }
+      const response = await authFetch('/api/transactions');
+      const payload = await response.json();
+      if (active) setTransactions(payload.success ? payload.data : []);
+    }
+
+    load();
+    return () => { active = false; };
+  }, [isAuthenticated]);
+
+  const addTransaction = async (transaction) => {
+    const response = await authFetch('/api/transactions', {
+      method: 'POST',
+      body: JSON.stringify(transaction),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(payload.error || 'Failed to create transaction');
+    setTransactions((prev) => [payload.data, ...prev]);
+    return payload.data;
   };
 
-  const deleteTransaction = (id) => {
+  const deleteTransaction = async (id) => {
+    const response = await authFetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(payload.error || 'Failed to delete transaction');
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
 
-  return (
-    <TransactionsContext.Provider
-      value={{ transactions, addTransaction, deleteTransaction }}
-    >
-      {children}
-    </TransactionsContext.Provider>
-  );
+  const value = useMemo(() => ({ transactions, addTransaction, deleteTransaction, mockTransactions }), [transactions]);
+
+  return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
 }
 
 export function useTransactions() {
   const context = useContext(TransactionsContext);
-  if (!context) {
-    throw new Error('useTransactions must be used within a TransactionsProvider');
-  }
+  if (!context) throw new Error('useTransactions must be used within a TransactionsProvider');
   return context;
 }
