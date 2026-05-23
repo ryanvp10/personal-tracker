@@ -16,14 +16,14 @@ function Layout({ children }) {
 
   function handleLogout() {
     logout();
-    window.location.href = '/login';
+    window.location.href = localStorage.getItem('skipAuth') === 'true' ? '/' : '/login';
   }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: theme.colors.background, color: theme.colors.text, fontFamily: theme.typography.fontFamily }}>
       <header style={{ borderBottom: `${theme.borders.width} ${theme.borders.style} ${theme.borders.color}`, padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
         <h1 style={{ fontSize: 'clamp(1.5rem, 5vw, 2.5rem)', fontWeight: 900, letterSpacing: '0.15em', margin: 0, textTransform: 'uppercase' }}>FINANCIAL TRACKER</h1>
-        <div style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.colors.textMuted }}>{user ? `LOGGED IN AS ${user.username}` : 'NOT AUTHENTICATED'}</div>
+        <div style={{ fontSize: '0.7rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: theme.colors.textMuted }}>{user ? `LOGGED IN AS ${user.username}` : localStorage.getItem('skipAuth') === 'true' ? 'GUEST MODE' : 'NOT AUTHENTICATED'}</div>
         <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
           {navItems.map(({ to, label, icon }) => {
             const isActive = location.pathname === to;

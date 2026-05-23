@@ -4,6 +4,11 @@ const AuthContext = createContext();
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://ryanvp10-personaltracker-api.hf.space';
 const TOKEN_KEY = 'authToken';
 const USER_KEY = 'authUser';
+const GUEST_SKIP_KEY = 'skipAuth';
+
+function isGuest() {
+  return localStorage.getItem(GUEST_SKIP_KEY) === 'true';
+}
 
 function getStoredAuth() {
   const token = sessionStorage.getItem(TOKEN_KEY);
@@ -30,7 +35,9 @@ export function AuthProvider({ children }) {
     token,
     user,
     isAuthenticated: Boolean(token),
+    isGuest,
     login: async (username, password) => {
+      localStorage.removeItem(GUEST_SKIP_KEY);
       const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -43,6 +50,8 @@ export function AuthProvider({ children }) {
       return payload.data.user;
     },
     logout: () => {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(USER_KEY);
       setToken(null);
       setUser(null);
     },
@@ -58,6 +67,10 @@ export function useAuth() {
 }
 
 export function authFetch(path, options = {}) {
+  if (isGuest()) {
+    throw new Error('Guest mode cannot access authenticated API endpoints');
+  }
+
   const { token } = getStoredAuth();
   const headers = new Headers(options.headers || {});
   if (token) headers.set('Authorization', `Bearer ${token}`);
