@@ -6,7 +6,6 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const { testConnection, seedHardcodedUsers } = require('./db');
-const { authenticateToken } = require('./auth');
 const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
 const { initBot } = require('./telegram/bot');
@@ -44,7 +43,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api', authenticateToken, transactionRoutes);
+app.use('/api', transactionRoutes);
 
 app.get('/', (req, res) => {
   res.json({

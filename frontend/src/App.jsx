@@ -83,7 +83,6 @@ function Login() {
         <input type="password" placeholder="PASSWORD" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} autoComplete="current-password" />
       </div>
       <button style={buttonStyle} onClick={handleLogin} disabled={loading}>{loading ? 'LOGGING IN...' : 'LOGIN'}</button>
-      <p style={{ fontSize: '0.75rem', color: theme.colors.textMuted, letterSpacing: '0.05em', maxWidth: '420px', textTransform: 'uppercase' }}>USE YAN / YAN123 OR PARTNER / PARTNER123 TO ACCESS THE TRACKER.</p>
       {error ? <p style={{ fontSize: '0.75rem', color: theme.colors.text, letterSpacing: '0.05em', maxWidth: '420px', textTransform: 'uppercase' }}>{error}</p> : null}
     </div>
   );
