@@ -30,8 +30,8 @@ router.get('/transactions', async (req, res) => {
     const { type, category } = req.query;
     const { limit, offset } = parseLimitOffset(req.query);
 
-    const where = ['user_id = ?', '1=1'];
-    const params = [req.user.sub];
+    const where = ['1=1'];
+    const params = [];
     if (type) {
       where.push('type = ?');
       params.push(type);
