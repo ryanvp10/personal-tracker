@@ -2,195 +2,136 @@
 
 const express = require('express');
 const router = express.Router();
-const { pool } = require('../db');
+const { db } = require('../db');
 
-// GET /api/transactions - List all transactions (newest first)
+function parseLimitOffset(query) {
+  const limit = Math.max(1, Math.min(500, parseInt(query.limit || '100', 10) || 100));
+  const offset = Math.max(0, parseInt(query.offset || '0', 10) || 0);
+  return { limit, offset };
+}
+
+function monthBounds() {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
 router.get('/transactions', async (req, res) => {
   try {
-    const { type, category, limit = 100, offset = 0 } = req.query;
+    const { type, category } = req.query;
+    const { limit, offset } = parseLimitOffset(req.query);
 
-    let query = 'SELECT * FROM transactions WHERE 1=1';
+    const where = ['1=1'];
     const params = [];
-    let paramIndex = 1;
-
     if (type) {
-      query += ` AND type = $${paramIndex++}`;
+      where.push('type = ?');
       params.push(type);
     }
-
     if (category) {
-      query += ` AND category ILIKE $${paramIndex++}`;
-      params.push(`%${category}%`);
+      where.push('LOWER(COALESCE(category, \'\')) LIKE ?');
+      params.push(`%${String(category).toLowerCase()}%`);
     }
 
-    query += ` ORDER BY created_at DESC LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
-    params.push(parseInt(limit, 10), parseInt(offset, 10));
+    const result = db.prepare(`
+      SELECT * FROM transactions
+      WHERE ${where.join(' AND ')}
+      ORDER BY datetime(created_at) DESC, id DESC
+      LIMIT ? OFFSET ?
+    `).all(...params, limit, offset);
 
-    const result = await pool.query(query, params);
+    const total = db.prepare(`
+      SELECT COUNT(*) AS count FROM transactions
+      WHERE ${where.join(' AND ')}
+    `).get(...params).count;
 
-    // Get total count for pagination
-    let countQuery = 'SELECT COUNT(*) FROM transactions WHERE 1=1';
-    const countParams = [];
-    let countIndex = 1;
-
-    if (type) {
-      countQuery += ` AND type = $${countIndex++}`;
-      countParams.push(type);
-    }
-    if (category) {
-      countQuery += ` AND category ILIKE $${countIndex++}`;
-      countParams.push(`%${category}%`);
-    }
-
-    const countResult = await pool.query(countQuery, countParams);
-
-    res.json({
-      success: true,
-      data: result.rows,
-      total: parseInt(countResult.rows[0].count, 10),
-      limit: parseInt(limit, 10),
-      offset: parseInt(offset, 10),
-    });
+    res.json({ success: true, data: result, total, limit, offset });
   } catch (err) {
     console.error('[API] GET /transactions error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to fetch transactions' });
   }
 });
 
-// POST /api/transactions - Create a new transaction
 router.post('/transactions', async (req, res) => {
   try {
     const { type, amount, category, note } = req.body;
-
-    // Validation
-    if (!type || !amount) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: type and amount',
-      });
-    }
-
-    if (!['in', 'out'].includes(type)) {
-      return res.status(400).json({
-        success: false,
-        error: "Type must be 'in' or 'out'",
-      });
-    }
+    if (!type || !amount) return res.status(400).json({ success: false, error: 'Missing required fields: type and amount' });
+    if (!['in', 'out'].includes(type)) return res.status(400).json({ success: false, error: "Type must be 'in' or 'out'" });
 
     const parsedAmount = parseInt(amount, 10);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Amount must be a positive integer',
-      });
-    }
+    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) return res.status(400).json({ success: false, error: 'Amount must be a positive integer' });
 
-    const result = await pool.query(
-      `INSERT INTO transactions (type, amount, category, note)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [type, parsedAmount, category || null, note || null]
-    );
+    const info = db.prepare(`
+      INSERT INTO transactions (type, amount, category, note)
+      VALUES (?, ?, ?, ?)
+    `).run(type, parsedAmount, category || null, note || null);
 
-    res.status(201).json({
-      success: true,
-      data: result.rows[0],
-    });
+    const saved = db.prepare('SELECT * FROM transactions WHERE id = ?').get(info.lastInsertRowid);
+    res.status(201).json({ success: true, data: saved });
   } catch (err) {
     console.error('[API] POST /transactions error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to create transaction' });
   }
 });
 
-// DELETE /api/transactions/:id - Delete a transaction
 router.delete('/transactions/:id', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    
-    // Validate id is a positive integer
-    if (isNaN(id) || id <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid transaction ID. Must be a positive integer.',
-      });
-    }
+    if (Number.isNaN(id) || id <= 0) return res.status(400).json({ success: false, error: 'Invalid transaction ID. Must be a positive integer.' });
 
-    const result = await pool.query(
-      'DELETE FROM transactions WHERE id = $1 RETURNING *',
-      [id]
-    );
+    const existing = db.prepare('SELECT * FROM transactions WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ success: false, error: 'Transaction not found' });
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Transaction not found',
-      });
-    }
-
-    res.json({
-      success: true,
-      data: result.rows[0],
-      message: 'Transaction deleted',
-    });
+    db.prepare('DELETE FROM transactions WHERE id = ?').run(id);
+    res.json({ success: true, data: existing, message: 'Transaction deleted' });
   } catch (err) {
     console.error('[API] DELETE /transactions/:id error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to delete transaction' });
   }
 });
 
-// GET /api/summary - Get monthly summary (income, expense, balance)
 router.get('/summary', async (req, res) => {
   try {
-    const result = await pool.query(`
+    const { start, end } = monthBounds();
+    const row = db.prepare(`
       SELECT
         COALESCE(SUM(CASE WHEN type = 'in' THEN amount ELSE 0 END), 0) AS total_income,
         COALESCE(SUM(CASE WHEN type = 'out' THEN amount ELSE 0 END), 0) AS total_expense,
-        COUNT(*) FILTER (WHERE type = 'in') AS income_count,
-        COUNT(*) FILTER (WHERE type = 'out') AS expense_count
+        COALESCE(SUM(CASE WHEN type = 'in' THEN 1 ELSE 0 END), 0) AS income_count,
+        COALESCE(SUM(CASE WHEN type = 'out' THEN 1 ELSE 0 END), 0) AS expense_count
       FROM transactions
-      WHERE created_at >= DATE_TRUNC('month', NOW())
-        AND created_at < DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
-    `);
+      WHERE datetime(created_at) >= datetime(?) AND datetime(created_at) < datetime(?)
+    `).get(start, end);
 
-    const row = result.rows[0];
     const summary = {
-      total_income: parseInt(row.total_income, 10),
-      total_expense: parseInt(row.total_expense, 10),
-      balance: parseInt(row.total_income, 10) - parseInt(row.total_expense, 10),
-      income_count: parseInt(row.income_count, 10),
-      expense_count: parseInt(row.expense_count, 10),
+      total_income: Number(row.total_income || 0),
+      total_expense: Number(row.total_expense || 0),
+      balance: Number(row.total_income || 0) - Number(row.total_expense || 0),
+      income_count: Number(row.income_count || 0),
+      expense_count: Number(row.expense_count || 0),
     };
 
-    res.json({
-      success: true,
-      data: summary,
-    });
+    res.json({ success: true, data: summary });
   } catch (err) {
     console.error('[API] GET /summary error:', err.message);
     res.status(500).json({ success: false, error: 'Failed to fetch summary' });
   }
 });
 
-// GET /api/categories - Get spending by category
 router.get('/categories', async (req, res) => {
   try {
-    const result = await pool.query(`
+    const { start, end } = monthBounds();
+    const rows = db.prepare(`
       SELECT category, SUM(amount) AS total, COUNT(*) AS count
       FROM transactions
-      WHERE type = 'out'
-        AND created_at >= DATE_TRUNC('month', NOW())
-        AND created_at < DATE_TRUNC('month', NOW()) + INTERVAL '1 month'
+      WHERE type = 'out' AND datetime(created_at) >= datetime(?) AND datetime(created_at) < datetime(?)
       GROUP BY category
       ORDER BY total DESC
-    `);
+    `).all(start, end);
 
     res.json({
       success: true,
-      data: result.rows.map(row => ({
-        category: row.category,
-        total: parseInt(row.total, 10),
-        count: parseInt(row.count, 10),
-      })),
+      data: rows.map(row => ({ category: row.category, total: Number(row.total || 0), count: Number(row.count || 0) })),
     });
   } catch (err) {
     console.error('[API] GET /categories error:', err.message);
