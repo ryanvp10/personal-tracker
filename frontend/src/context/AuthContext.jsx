@@ -52,6 +52,7 @@ export function AuthProvider({ children }) {
     logout: () => {
       sessionStorage.removeItem(TOKEN_KEY);
       sessionStorage.removeItem(USER_KEY);
+      localStorage.removeItem(GUEST_SKIP_KEY);
       setToken(null);
       setUser(null);
     },

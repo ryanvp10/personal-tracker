@@ -16,7 +16,7 @@ function Layout({ children }) {
 
   function handleLogout() {
     logout();
-    window.location.href = localStorage.getItem('skipAuth') === 'true' ? '/' : '/login';
+    window.location.href = '/login';
   }
 
   return (

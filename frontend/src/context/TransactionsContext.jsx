@@ -13,7 +13,7 @@ function isGuestMode() {
 
 function getStoredGuestTransactions() {
   const raw = localStorage.getItem(GUEST_TRANSACTIONS_KEY);
-  if (!raw) {
+  if (!raw || raw === '[]') {
     localStorage.setItem(GUEST_TRANSACTIONS_KEY, JSON.stringify(mockTransactions));
     return mockTransactions;
   }
