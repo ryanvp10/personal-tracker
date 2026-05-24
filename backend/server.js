@@ -37,12 +37,15 @@ app.use(cors({
 }));
 
 // Initialize bot and register webhook BEFORE bodyParser
-// Telegraf webhook needs raw body, so it must be before json parser
 initBot();
 const webhookHandler = getBotWebhookHandler();
+console.log('[DEBUG] webhookHandler:', webhookHandler ? 'registered' : 'null');
+console.log('[DEBUG] bot instance:', getBot() ? 'exists' : 'null');
 if (webhookHandler) {
   app.post('/telegram-webhook', express.json(), webhookHandler);
   console.log('[BOT] Telegram webhook endpoint registered at /telegram-webhook');
+} else {
+  console.log('[BOT] Webhook handler is null - bot may not be configured');
 }
 
 app.use(bodyParser.json());
