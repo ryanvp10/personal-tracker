@@ -32,7 +32,7 @@ function persistGuestTransactions(nextTransactions) {
 }
 
 export function TransactionsProvider({ children }) {
-  const { isAuthenticated, isGuest } = useAuth();
+  const { isAuthenticated, isGuest, token } = useAuth();
   const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function TransactionsProvider({ children }) {
 
     load();
     return () => { active = false; };
-  }, [isAuthenticated, isGuest]);
+  }, [isAuthenticated, isGuest, token]);
 
   const addTransaction = async (transaction) => {
     if (isGuestMode() || isGuest()) {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 
 const AuthContext = createContext();
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://ryanvp10-personaltracker-api.hf.space';
@@ -21,6 +21,20 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => getStoredAuth().token);
   const [user, setUser] = useState(() => getStoredAuth().user);
 
+  const login = useCallback(async (username, password) => {
+    localStorage.removeItem(GUEST_SKIP_KEY);
+    const response = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) throw new Error(payload.error || 'Login failed');
+    setToken(payload.data.token);
+    setUser(payload.data.user);
+    return payload.data.user;
+  }, []);
+
   useEffect(() => {
     if (token) localStorage.setItem(TOKEN_KEY, token);
     else localStorage.removeItem(TOKEN_KEY);
@@ -36,19 +50,7 @@ export function AuthProvider({ children }) {
     user,
     isAuthenticated: Boolean(token),
     isGuest,
-    login: async (username, password) => {
-      localStorage.removeItem(GUEST_SKIP_KEY);
-      const response = await fetch(`${API_BASE}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const payload = await response.json();
-      if (!response.ok || !payload.success) throw new Error(payload.error || 'Login failed');
-      setToken(payload.data.token);
-      setUser(payload.data.user);
-      return payload.data.user;
-    },
+    login,
     logout: () => {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
@@ -56,7 +58,7 @@ export function AuthProvider({ children }) {
       setToken(null);
       setUser(null);
     },
-  }), [token, user]);
+  }), [token, user, login]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
