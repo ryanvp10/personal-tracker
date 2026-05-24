@@ -11,8 +11,8 @@ function isGuest() {
 }
 
 function getStoredAuth() {
-  const token = sessionStorage.getItem(TOKEN_KEY);
-  const userRaw = sessionStorage.getItem(USER_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  const userRaw = localStorage.getItem(USER_KEY);
   const user = userRaw ? JSON.parse(userRaw) : null;
   return { token, user };
 }
@@ -22,13 +22,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => getStoredAuth().user);
 
   useEffect(() => {
-    if (token) sessionStorage.setItem(TOKEN_KEY, token);
-    else sessionStorage.removeItem(TOKEN_KEY);
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
   }, [token]);
 
   useEffect(() => {
-    if (user) sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-    else sessionStorage.removeItem(USER_KEY);
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(USER_KEY);
   }, [user]);
 
   const value = useMemo(() => ({
@@ -50,8 +50,8 @@ export function AuthProvider({ children }) {
       return payload.data.user;
     },
     logout: () => {
-      sessionStorage.removeItem(TOKEN_KEY);
-      sessionStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
       localStorage.removeItem(GUEST_SKIP_KEY);
       setToken(null);
       setUser(null);
