@@ -55,6 +55,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), env: NODE_ENV, uptime: process.uptime() });
 });
 
+// Temporary debug endpoint - remove after fixing
+app.get('/api/debug-env', (req, res) => {
+  res.json({
+    hasTelegramToken: !!process.env.TELEGRAM_BOT_TOKEN,
+    tokenLength: process.env.TELEGRAM_BOT_TOKEN ? process.env.TELEGRAM_BOT_TOKEN.length : 0,
+    hasFreemodelKey: !!process.env.FREEMODEL_API_KEY,
+    hasJwtSecret: !!process.env.JWT_SECRET,
+    nodeEnv: process.env.NODE_ENV,
+    envKeys: Object.keys(process.env).filter(k => k.startsWith('TELEGRAM') || k.startsWith('FREE') || k.startsWith('JWT') || k.startsWith('CORS') || k.startsWith('NODE'))
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api', transactionRoutes);
 
