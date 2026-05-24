@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { mockTransactions } from '../mockData.js';
-import { authFetch, useAuth } from './AuthContext';
+import { authFetch } from './AuthContext';
 
 const TransactionsContext = createContext();
 
@@ -32,32 +32,59 @@ function persistGuestTransactions(nextTransactions) {
 }
 
 export function TransactionsProvider({ children }) {
-  const { isAuthenticated, isGuest, token } = useAuth();
   const [transactions, setTransactions] = useState([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let active = true;
 
     async function load() {
-      if (isGuestMode() || isGuest()) {
-        if (active) setTransactions(getStoredGuestTransactions());
+      const isGuest = localStorage.getItem('skipAuth') === 'true';
+      if (isGuest) {
+        if (active) {
+          setTransactions(getStoredGuestTransactions());
+          setLoaded(true);
+        }
         return;
       }
-      if (!isAuthenticated) {
-        if (active) setTransactions([]);
+
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        if (active) {
+          setTransactions([]);
+          setLoaded(true);
+        }
         return;
       }
-      const response = await authFetch('/api/transactions');
-      const payload = await response.json();
-      if (active) setTransactions(payload.success ? payload.data : []);
+
+      try {
+        const headers = new Headers();
+        headers.set('Authorization', `Bearer ${token}`);
+        headers.set('Content-Type', 'application/json');
+        const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://ryanvp10-personaltracker-api.hf.space';
+        const response = await fetch(`${API_BASE}/api/transactions`, { headers });
+        const payload = await response.json();
+        if (active) {
+          setTransactions(payload.success ? payload.data : []);
+          setLoaded(true);
+        }
+      } catch (err) {
+        if (active) {
+          setTransactions([]);
+          setLoaded(true);
+        }
+      }
     }
 
-    load();
+    if (!loaded) {
+      load();
+    }
+
     return () => { active = false; };
-  }, [isAuthenticated, isGuest, token]);
+  }, [loaded]);
 
   const addTransaction = async (transaction) => {
-    if (isGuestMode() || isGuest()) {
+    if (isGuestMode()) {
       const guestTransaction = {
         ...transaction,
         id: Date.now(),
@@ -71,8 +98,15 @@ export function TransactionsProvider({ children }) {
       return guestTransaction;
     }
 
-    const response = await authFetch('/api/transactions', {
+    const token = localStorage.getItem('authToken');
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://ryanvp10-personaltracker-api.hf.space';
+    const headers = new Headers();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+    headers.set('Content-Type', 'application/json');
+
+    const response = await fetch(`${API_BASE}/api/transactions`, {
       method: 'POST',
+      headers,
       body: JSON.stringify(transaction),
     });
     const payload = await response.json();
@@ -82,7 +116,7 @@ export function TransactionsProvider({ children }) {
   };
 
   const deleteTransaction = async (id) => {
-    if (isGuestMode() || isGuest()) {
+    if (isGuestMode()) {
       setTransactions((prev) => {
         const nextTransactions = prev.filter((t) => t.id !== id);
         persistGuestTransactions(nextTransactions);
@@ -91,7 +125,12 @@ export function TransactionsProvider({ children }) {
       return;
     }
 
-    const response = await authFetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    const token = localStorage.getItem('authToken');
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://ryanvp10-personaltracker-api.hf.space';
+    const headers = new Headers();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+
+    const response = await fetch(`${API_BASE}/api/transactions/${id}`, { method: 'DELETE', headers });
     const payload = await response.json();
     if (!response.ok || !payload.success) throw new Error(payload.error || 'Failed to delete transaction');
     setTransactions((prev) => prev.filter((t) => t.id !== id));
