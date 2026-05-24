@@ -4,10 +4,10 @@ import theme from './theme';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { TransactionsProvider } from './context/TransactionsContext';
 import Layout from './components/Layout';
+import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import TransactionForm from './components/TransactionForm';
 import TransactionList from './components/TransactionList';
-import LandingPage from './components/LandingPage';
 
 function AppShell() {
   return (
@@ -83,7 +83,7 @@ function Login() {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', maxWidth: '300px' }}>
         <button style={{ ...buttonStyle, width: '100%' }} onClick={handleLogin} disabled={loading}>{loading ? 'LOGGING IN...' : 'LOGIN'}</button>
-        <button style={{ ...buttonStyle, width: '100%' }} onClick={handleGuestContinue}>Continue as Guest</button>
+        <button style={{ ...buttonStyle, width: '100%', fontSize: '0.75rem' }} onClick={handleGuestContinue}>CONTINUE AS GUEST</button>
       </div>
       {error ? <p style={{ fontSize: '0.75rem', color: theme.colors.text, letterSpacing: '0.05em', maxWidth: '420px', textTransform: 'uppercase' }}>{error}</p> : null}
     </div>
