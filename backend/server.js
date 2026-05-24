@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 const { testConnection, seedHardcodedUsers } = require('./db');
 const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
-const { initBot } = require('./telegram/bot');
+const { initBot, getBot, getBotWebhookHandler } = require('./telegram/bot');
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '7860', 10);
@@ -78,7 +78,24 @@ async function start() {
 
   testConnection();
   seedHardcodedUsers();
+  
+  // Initialize bot in webhook mode
   initBot();
+  const webhookHandler = getBotWebhookHandler();
+  if (webhookHandler) {
+    app.post('/telegram-webhook', webhookHandler);
+    console.log('[BOT] Telegram webhook endpoint registered at /telegram-webhook');
+    
+    // Register webhook with Telegram
+    const webhookUrl = `https://ryanvp10-personaltracker-api.hf.space/telegram-webhook`;
+    try {
+      await getBot().telegram.setWebhook(webhookUrl);
+      console.log('[BOT] Webhook set:', webhookUrl);
+    } catch (err) {
+      console.error('[BOT] Webhook setup failed:', err.message);
+    }
+  }
+  
   app.listen(PORT, '0.0.0.0', () => console.log(`[HTTP] Server running on http://0.0.0.0:${PORT}`));
 }
 

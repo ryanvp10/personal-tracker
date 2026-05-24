@@ -126,10 +126,17 @@ function initBot() {
     }
   });
 
-  bot.launch().then(() => console.log('[BOT] Telegram bot is running')).catch((err) => console.error('[BOT] Failed to start:', err.message));
-  process.once('SIGINT', () => bot?.stop('SIGINT'));
-  process.once('SIGTERM', () => bot?.stop('SIGTERM'));
+  console.log('[BOT] Telegram bot initialized (webhook mode)');
   return bot;
 }
 
-module.exports = { initBot, parseAmount, detectType, detectCategory, extractNote };
+function getBot() {
+  return bot;
+}
+
+function getBotWebhookHandler() {
+  if (!bot) return null;
+  return bot.webhookCallback('/telegram-webhook');
+}
+
+module.exports = { initBot, getBot, getBotWebhookHandler, parseAmount, detectType, detectCategory, extractNote };
