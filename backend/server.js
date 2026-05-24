@@ -35,6 +35,16 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
+
+// Initialize bot and register webhook BEFORE bodyParser
+// Telegraf webhook needs raw body, so it must be before json parser
+initBot();
+const webhookHandler = getBotWebhookHandler();
+if (webhookHandler) {
+  app.post('/telegram-webhook', express.json(), webhookHandler);
+  console.log('[BOT] Telegram webhook endpoint registered at /telegram-webhook');
+}
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -79,14 +89,8 @@ async function start() {
   testConnection();
   seedHardcodedUsers();
   
-  // Initialize bot in webhook mode
-  initBot();
-  const webhookHandler = getBotWebhookHandler();
+  // Register webhook with Telegram (bot already initialized above)
   if (webhookHandler) {
-    app.post('/telegram-webhook', webhookHandler);
-    console.log('[BOT] Telegram webhook endpoint registered at /telegram-webhook');
-    
-    // Register webhook with Telegram
     const webhookUrl = `https://ryanvp10-personaltracker-api.hf.space/telegram-webhook`;
     try {
       await getBot().telegram.setWebhook(webhookUrl);
