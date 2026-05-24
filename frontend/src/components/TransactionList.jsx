@@ -32,6 +32,11 @@ function getYearOptions() {
   return options;
 }
 
+function getTransactionDate(transaction) {
+  const rawDate = transaction?.date || transaction?.created_at || '';
+  return String(rawDate).split(' ')[0];
+}
+
 const BrutalistSelect = ({ value, onChange, options, isMobile }) => (
   <select
     value={value}
@@ -85,11 +90,11 @@ function TransactionList() {
     // Apply month filter
     if (monthFilter !== 'all') {
       const monthPart = `-${monthFilter}-`;
-      result = result.filter((t) => t.date.includes(monthPart));
+      result = result.filter((t) => getTransactionDate(t).includes(monthPart));
     }
     // Apply year filter
     if (yearFilter !== 'all') {
-      result = result.filter((t) => t.date.startsWith(yearFilter));
+      result = result.filter((t) => getTransactionDate(t).startsWith(yearFilter));
     }
     // Apply type filter
     if (filter !== 'all') {
@@ -121,7 +126,7 @@ function TransactionList() {
     const rows = filtered.map((t) => [
       t.note || 'NO NOTE',
       t.category,
-      formatDate(t.date),
+      formatDate(getTransactionDate(t)),
       t.type === 'in' ? 'INCOME' : 'EXPENSES',
       `${t.type === 'in' ? '+' : '-'}Rp. ${formatCurrency(t.amount)}`,
     ]);
@@ -219,7 +224,7 @@ function TransactionList() {
       aoa.push([
         sanitizeForExcel(t.note || 'NO NOTE'),
         sanitizeForExcel(t.category),
-        formatDate(t.date),
+        formatDate(getTransactionDate(t)),
         t.type === 'in' ? 'INCOME' : 'EXPENSES',
         `${t.type === 'in' ? '+' : '-'}Rp. ${formatCurrency(t.amount)}`,
       ]);
@@ -544,7 +549,7 @@ function TransactionList() {
                   {t.category}
                 </span>
                 <span style={{ fontSize: '0.7rem', color: theme.colors.textMuted, letterSpacing: '0.1em' }}>
-                  {formatDate(t.date)}
+                  {formatDate(getTransactionDate(t))}
                 </span>
               </div>
 
