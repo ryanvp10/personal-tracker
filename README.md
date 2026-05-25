@@ -4,9 +4,7 @@
 
 A personal finance tracker built with Brutalist design principles — black, white, bold, raw. Now with Telegram bot integration and user authentication.
 
-**Live Demo:** [https://personaltrac.netlify.app/](https://personaltrac.netlify.app/)
 
----
 
 ## 🎯 FEATURES
 
@@ -16,7 +14,7 @@ A personal finance tracker built with Brutalist design principles — black, whi
 - **Guest Mode** — Track finances offline without login (localStorage)
 - **User Auth** — Login with username/password (7-day persistent sessions)
 - **Shared Tracker** — All logged-in users see the same transaction pool
-- **Telegram Integration** — Input expenses via Telegram bot @rupsbot
+- **Telegram Integration** — Input expenses via Telegram bot
 - **Export** — PDF and Excel export with Brutalist styling
 - **IDR/Rupiah Currency** — Native support (125.000 format)
 
@@ -24,7 +22,7 @@ A personal finance tracker built with Brutalist design principles — black, whi
 - JWT-based authentication (7-day token expiry)
 - Persistent login via localStorage
 - Guest mode with localStorage-only transactions
-- Default accounts: `yan/yan123`, `partner/partner123`
+- Default accounts seeded for personal use
 
 ### BRUTALISM DESIGN
 - Pure black (#000000) background
@@ -136,12 +134,12 @@ npm start
 
 ### Logged-In Mode
 1. Click "LOGIN" on the landing page
-2. Enter username/password
+2. Enter your credentials
 3. Transactions sync across all logged-in devices
 4. Partner can login with their own account
 
 ### Telegram Bot
-Send message to `@rupsbot`:
+Send message to your Telegram bot:
 ```
 ayam goreng 20k
 gaji 5jt
