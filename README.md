@@ -4,7 +4,7 @@
 
 A personal finance tracker built with Brutalist design principles — black, white, bold, raw. Now with Telegram bot integration and user authentication.
 
-
+**Live Demo:** [https://personaltrac.netlify.app/](https://personaltrac.netlify.app/)
 
 ## 🎯 FEATURES
 
