@@ -1,3 +1,13 @@
+---
+title: PERSONAL TRACKER
+emoji: 💰
+colorFrom: black
+colorTo: white
+sdk: docker
+app_port: 7860
+license: mit
+---
+
 # FINANCIAL TRACKER
 
 **Track your income and expenses with BRUTAL precision.**
