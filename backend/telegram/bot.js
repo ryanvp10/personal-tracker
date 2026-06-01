@@ -7,12 +7,17 @@ const INCOME_KEYWORDS = ['gaji', 'salary', 'bonus', 'jual', 'sell', 'hasil', 'in
 const EXPENSE_KEYWORDS = ['makan', 'food', 'ayam', 'nasi', 'grab', 'transport', 'bensin', 'listrik', 'air', 'beli', 'buy', 'minum', 'snack', 'jajan', 'parkir', 'tol', 'tagihan', 'spp', 'kuliah', 'bayar'];
 
 const CATEGORY_MAP = {
-  ayam: 'food', makan: 'food', nasi: 'food', food: 'food', minum: 'food', snack: 'food', jajan: 'food',
-  grab: 'transport', bensin: 'transport', transport: 'transport', parkir: 'transport', tol: 'transport',
-  listrik: 'bills', air: 'bills', tagihan: 'bills',
-  gaji: 'salary', salary: 'salary', bonus: 'salary',
-  beli: 'shopping', buy: 'shopping',
-  spp: 'education', kuliah: 'education',
+  makan: 'FOOD', food: 'FOOD', ayam: 'FOOD', nasi: 'FOOD', bakso: 'FOOD', sate: 'FOOD', goreng: 'FOOD', jajan: 'FOOD', minum: 'FOOD', snack: 'FOOD', mie: 'FOOD', 'nasi goreng': 'FOOD', 'ayam goreng': 'FOOD', gado: 'FOOD', soto: 'FOOD', rendang: 'FOOD',
+  sewa: 'RENT', rent: 'RENT', kontrakan: 'RENT', kos: 'RENT', 'sewa rumah': 'RENT', 'sewa apartemen': 'RENT',
+  listrik: 'UTILITIES', air: 'UTILITIES', pulsa: 'UTILITIES', token: 'UTILITIES', internet: 'UTILITIES', wifi: 'UTILITIES', gas: 'UTILITIES', pdam: 'UTILITIES', PLN: 'UTILITIES',
+  grab: 'TRANSPORT', bensin: 'TRANSPORT', transport: 'TRANSPORT', parkir: 'TRANSPORT', tol: 'TRANSPORT', ojol: 'TRANSPORT', motor: 'TRANSPORT', mobil: 'TRANSPORT', bus: 'TRANSPORT', kereta: 'TRANSPORT', taksi: 'TRANSPORT',
+  hiburan: 'ENTERTAINMENT', film: 'ENTERTAINMENT', netflix: 'ENTERTAINMENT', spotify: 'ENTERTAINMENT', game: 'ENTERTAINMENT', konser: 'ENTERTAINMENT', wisata: 'ENTERTAINMENT', liburan: 'ENTERTAINMENT', cafe: 'ENTERTAINMENT', kopi: 'ENTERTAINMENT', kafe: 'ENTERTAINMENT',
+  kesehatan: 'HEALTHCARE', dokter: 'HEALTHCARE', rs: 'HEALTHCARE', 'rumah sakit': 'HEALTHCARE', apotek: 'HEALTHCARE', obat: 'HEALTHCARE', bpjs: 'HEALTHCARE', checkup: 'HEALTHCARE',
+  beli: 'SHOPPING', buy: 'SHOPPING', shopping: 'SHOPPING', tokopedia: 'SHOPPING', shopee: 'SHOPPING', lazada: 'SHOPPING', buku: 'SHOPPING', pakaian: 'SHOPPING', sepatu: 'SHOPPING',
+  gaji: 'SALARY', salary: 'SALARY', bonus: 'SALARY', thr: 'SALARY', tunjangan: 'SALARY',
+  freelance: 'FREELANCE', proyek: 'FREELANCE', project: 'FREELANCE', 'kontrak kerja': 'FREELANCE',
+  investasi: 'INVESTMENT', reksadana: 'INVESTMENT', saham: 'INVESTMENT', crypto: 'INVESTMENT', tabungan: 'INVESTMENT', deposito: 'INVESTMENT',
+  transfer: 'OTHER', kirim: 'OTHER', 'kirim uang': 'OTHER', tf: 'OTHER',
 };
 
 function parseAmount(text) {
@@ -48,9 +53,9 @@ function detectType(text) {
 function detectCategory(text) {
   const lower = text.toLowerCase();
   for (const [keyword, category] of Object.entries(CATEGORY_MAP)) {
-    if (lower.includes(keyword)) return category;
+    if (lower.includes(keyword.toLowerCase())) return category.toUpperCase();
   }
-  return 'other';
+  return 'OTHER';
 }
 
 function extractNote(text, amount) {
@@ -82,7 +87,7 @@ function getJson(url, body) {
 
 async function parseWithAI(text) {
   if (!process.env.FREEMODEL_API_KEY) return null;
-  const prompt = `Parse this Indonesian financial message into JSON with keys type (in|out), amount (integer), category, note. Return only JSON. Message: ${text}`;
+  const prompt = `Parse this Indonesian/English financial message into JSON with keys: type (in|out), amount (integer), category (one of: FOOD, RENT, UTILITIES, TRANSPORT, ENTERTAINMENT, HEALTHCARE, SHOPPING, SALARY, FREELANCE, INVESTMENT, OTHER), note (short description). Return only JSON. Message: ${text}`;
   const data = await getJson('https://api.freemodel.dev/v1/chat/completions', {
     model: 'gpt-5.5',
     messages: [{ role: 'user', content: prompt }],
@@ -94,7 +99,8 @@ async function parseWithAI(text) {
 }
 
 function saveTransaction(type, amount, category, note) {
-  const info = db.prepare('INSERT INTO transactions (type, amount, category, note) VALUES (?, ?, ?, ?)').run(type, amount, category, note);
+  const normalizedCategory = String(category || 'OTHER').toUpperCase();
+  const info = db.prepare('INSERT INTO transactions (type, amount, category, note) VALUES (?, ?, ?, ?)').run(type, amount, normalizedCategory, note);
   return db.prepare('SELECT * FROM transactions WHERE id = ?').get(info.lastInsertRowid);
 }
 
@@ -116,7 +122,7 @@ function initBot() {
       const amount = parsed?.amount || parseAmount(text);
       if (!amount) return ctx.reply('Could not find an amount in your message.');
       const type = parsed?.type || detectType(text);
-      const category = parsed?.category || detectCategory(text);
+      const category = String(parsed?.category || detectCategory(text)).toUpperCase();
       const note = parsed?.note || extractNote(text, amount);
       const saved = saveTransaction(type, amount, category, note);
       await ctx.reply(`${saved.type === 'in' ? '💰' : '💸'} SAVED!\n\nType: ${saved.type === 'in' ? 'INCOME' : 'EXPENSE'}\nAmount: ${formatIDR(saved.amount)}\nCategory: ${saved.category}\nNote: ${saved.note}\n\n#${saved.id} | ${new Date(saved.created_at).toLocaleString('id-ID')}`);
