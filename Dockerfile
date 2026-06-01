@@ -9,6 +9,9 @@ COPY backend/ ./backend/
 
 WORKDIR /app/backend
 
+# Create data directory for SQLite (persistent on HF Spaces)
+RUN mkdir -p /data
+
 EXPOSE 7860
 
 CMD ["node", "server.js"]
