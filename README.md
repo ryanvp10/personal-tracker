@@ -1,8 +1,8 @@
 ---
 title: PERSONAL TRACKER
 emoji: 💰
-colorFrom: black
-colorTo: white
+colorFrom: gray
+colorTo: pink
 sdk: docker
 app_port: 7860
 license: mit
