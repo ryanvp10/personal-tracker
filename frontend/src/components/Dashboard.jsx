@@ -24,6 +24,8 @@ const cardStyle = {
   display: 'flex',
   flexDirection: 'column',
   gap: '8px',
+  overflow: 'hidden',
+  minWidth: 0,
 };
 
 const labelStyle = {
@@ -39,6 +41,9 @@ const valueStyle = {
   fontWeight: 900,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
 };
 
 const formatIDR = (val) => {
