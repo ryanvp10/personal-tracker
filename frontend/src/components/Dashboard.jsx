@@ -192,13 +192,23 @@ function Dashboard() {
     setSelectedSlice(data);
   }, []);
 
-  // ===== DERIVE DATA FROM transactions =====
+  // ===== DERIVE DATA FROM transactions (filtered by current month) =====
   const { summary, barData, pieData } = useMemo(() => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const monthStr = String(currentMonth).padStart(2, '0');
+    const yearStr = String(currentYear);
+
     let totalIn = 0;
     let totalOut = 0;
     const categoryMap = {};
 
     transactions.forEach((tx) => {
+      const rawDate = tx.created_at || tx.date || '';
+      const dateStr = String(rawDate).split(' ')[0]; // "YYYY-MM-DD"
+      if (!dateStr.startsWith(`${yearStr}-${monthStr}`)) return; // filter by current month only
+
       if (tx.type === 'in') {
         totalIn += tx.amount;
       } else if (tx.type === 'out') {
@@ -271,7 +281,7 @@ function Dashboard() {
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FiTrendingUp size={24} />
-            <span style={labelStyle}>MONTHLY IN</span>
+            <span style={labelStyle}>THIS MONTH IN</span>
           </div>
           <span style={valueStyle}>{formatIDR(summary.monthlyIn)}</span>
         </div>
@@ -279,7 +289,7 @@ function Dashboard() {
         <div style={cardStyle}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <FiTrendingDown size={24} />
-            <span style={labelStyle}>MONTHLY OUT</span>
+            <span style={labelStyle}>THIS MONTH OUT</span>
           </div>
           <span style={valueStyle}>{formatIDR(summary.monthlyOut)}</span>
         </div>

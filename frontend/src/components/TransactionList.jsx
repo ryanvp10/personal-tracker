@@ -76,7 +76,7 @@ const BrutalistSelect = ({ value, onChange, options, isMobile }) => (
 );
 
 function TransactionList() {
-  const { transactions, deleteTransaction } = useTransactions();
+  const { transactions, deleteTransaction, refetch } = useTransactions();
   const [filter, setFilter] = useState('all');
   const [monthFilter, setMonthFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('all');
@@ -400,6 +400,25 @@ function TransactionList() {
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+          <button
+            onClick={refetch}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: isMobile ? '8px 10px' : '10px 16px',
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              border: '6px solid #ffffff',
+              fontWeight: 900,
+              fontSize: 'clamp(0.6rem, 1.5vw, 0.7rem)',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            ↻ REFRESH
+          </button>
           <button
             onClick={handleExportPDF}
             style={{

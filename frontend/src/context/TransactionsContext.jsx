@@ -35,6 +35,10 @@ export function TransactionsProvider({ children }) {
   const [transactions, setTransactions] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
+  const refetch = () => {
+    setLoaded(false);
+  };
+
   useEffect(() => {
     let active = true;
 
@@ -82,6 +86,20 @@ export function TransactionsProvider({ children }) {
 
     return () => { active = false; };
   }, [loaded]);
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible' && !isGuestMode()) {
+        refetch();
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   const addTransaction = async (transaction) => {
     if (isGuestMode()) {
@@ -136,7 +154,7 @@ export function TransactionsProvider({ children }) {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const value = useMemo(() => ({ transactions, addTransaction, deleteTransaction, mockTransactions }), [transactions]);
+  const value = useMemo(() => ({ transactions, addTransaction, deleteTransaction, refetch }), [transactions]);
 
   return <TransactionsContext.Provider value={value}>{children}</TransactionsContext.Provider>;
 }
