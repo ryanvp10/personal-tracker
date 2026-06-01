@@ -61,7 +61,7 @@ function detectCategory(text) {
 function extractNote(text, amount) {
   if (!amount) return text.trim();
   return text
-    .replace(/\d[\d.,]*\s*(M|m|jt|juta|k|rb|ribu)\b/gi, '')
+    .replace(/\d[\d.,]*/g, '')  // strip ALL numbers (with or without suffix)
     .replace(/\s+/g, ' ')
     .trim() || 'no description';
 }
@@ -87,7 +87,7 @@ function getJson(url, body) {
 
 async function parseWithAI(text) {
   if (!process.env.FREEMODEL_API_KEY) return null;
-  const prompt = `Parse this Indonesian/English financial message into JSON with keys: type (in|out), amount (integer), category (one of: FOOD, RENT, UTILITIES, TRANSPORT, ENTERTAINMENT, HEALTHCARE, SHOPPING, SALARY, FREELANCE, INVESTMENT, OTHER), note (short description). Return only JSON. Message: ${text}`;
+  const prompt = `Parse this Indonesian/English financial message into JSON with keys: type (in|out), amount (integer), category (one of: FOOD, RENT, UTILITIES, TRANSPORT, ENTERTAINMENT, HEALTHCARE, SHOPPING, SALARY, FREELANCE, INVESTMENT, OTHER), note (short description, do NOT include the amount number — just the purpose/reason, e.g. "Qurban" not "Qurban 2500000"). Return only JSON. Message: ${text}`;
   const data = await getJson('https://api.freemodel.dev/v1/chat/completions', {
     model: 'gpt-5.5',
     messages: [{ role: 'user', content: prompt }],
