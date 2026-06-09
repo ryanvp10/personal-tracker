@@ -12,6 +12,7 @@ const { testConnection, seedHardcodedUsers } = require('./db');
 const authRoutes = require('./routes/auth');
 const transactionRoutes = require('./routes/transactions');
 const { initBot, getBot, getBotWebhookHandler } = require('./telegram/bot');
+require('./scripts/scheduler');
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '7860', 10);
