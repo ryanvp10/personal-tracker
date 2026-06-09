@@ -2,6 +2,9 @@
 
 require('dotenv').config();
 
+const fs = require('fs');
+fs.mkdirSync('/data', { recursive: true });
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
